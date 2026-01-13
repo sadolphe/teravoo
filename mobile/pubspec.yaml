@@ -1,0 +1,36 @@
+name: mobile
+description: "TeraVoo Mobile App for Producers/Facilitators"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # Networking
+  dio: ^5.4.0
+  
+  # Storage
+  flutter_secure_storage: ^9.0.0
+  shared_preferences: ^2.2.2
+  
+  # UI/UX
+  google_fonts: ^6.1.0
+  flutter_animate: ^4.5.0
+  
+  # Camera & Files
+  image_picker: ^1.0.7 # Simpler than raw camera for MVP
+  camera: ^0.10.5
+  path_provider: ^2.1.2
+  path: ^1.8.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true

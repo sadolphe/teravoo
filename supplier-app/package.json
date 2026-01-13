@@ -1,0 +1,9 @@
+{
+    "name": "teravoo-supplier-app",
+    "version": "1.0.0",
+    "description": "Static build of Flutter Web App",
+    "scripts": {
+        "build": "echo 'Build already done via Flutter'"
+    },
+    "dependencies": {}
+}

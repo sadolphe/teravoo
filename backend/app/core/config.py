@@ -1,5 +1,6 @@
 import os
 from pydantic_settings import BaseSettings
+from pydantic import model_validator
 from typing import List
 
 class Settings(BaseSettings):
@@ -21,21 +22,22 @@ class Settings(BaseSettings):
     
     # Priority to env var (Cloud), fallback to constructed (Local)
     # Priority to env var (Cloud), fallback to constructed (Local)
+    # Priority to env var (Cloud), fallback to constructed (Local)
     DATABASE_URL: str | None = None
 
-    def __init__(self, **values):
-        super().__init__(**values)
+    @model_validator(mode='after')
+    def assemble_db_connection(self) -> "Settings":
         if not self.DATABASE_URL:
-            # Fallback for local
             self.DATABASE_URL = f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
         
         # Determine if overwrite needed for Render (postgres:// or postgresql:// -> postgresql+psycopg://)
         if self.DATABASE_URL:
-            if self.DATABASE_URL.startswith("postgres://"):
+             if self.DATABASE_URL.startswith("postgres://"):
                 self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
-            elif self.DATABASE_URL.startswith("postgresql://"):
+             elif self.DATABASE_URL.startswith("postgresql://"):
                 self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
-
+        
+        return self
 
     class Config:
         case_sensitive = True

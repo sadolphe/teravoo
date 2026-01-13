@@ -20,7 +20,19 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "teravoo")
     
     # Priority to env var (Cloud), fallback to constructed (Local)
-    DATABASE_URL: str = os.getenv("DATABASE_URL", f"postgresql+psycopg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}")
+    # Priority to env var (Cloud), fallback to constructed (Local)
+    DATABASE_URL: str | None = None
+
+    def __init__(self, **values):
+        super().__init__(**values)
+        if not self.DATABASE_URL:
+            # Fallback for local
+            self.DATABASE_URL = f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+        
+        # Determine if overwrite needed for Render (postgres:// -> postgresql://)
+        if self.DATABASE_URL and self.DATABASE_URL.startswith("postgres://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 
     class Config:
         case_sensitive = True

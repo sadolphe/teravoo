@@ -29,9 +29,12 @@ class Settings(BaseSettings):
             # Fallback for local
             self.DATABASE_URL = f"postgresql+psycopg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
         
-        # Determine if overwrite needed for Render (postgres:// -> postgresql://)
-        if self.DATABASE_URL and self.DATABASE_URL.startswith("postgres://"):
-            self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+        # Determine if overwrite needed for Render (postgres:// or postgresql:// -> postgresql+psycopg://)
+        if self.DATABASE_URL:
+            if self.DATABASE_URL.startswith("postgres://"):
+                self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+            elif self.DATABASE_URL.startswith("postgresql://"):
+                self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
 
 
     class Config:

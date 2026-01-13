@@ -5,7 +5,8 @@ class ApiClient {
   // For iOS Simulator: http://localhost:8000/api/v1
   // For Android Emulator: http://10.0.2.2:8000/api/v1
   // For Real Device (USB): http://<YOUR_IP>:8000/api/v1
-  static const String baseUrl = 'http://localhost:8000/api/v1'; 
+  // PROD (Render):
+  static const String baseUrl = 'https://teravoo-backend.onrender.com/api/v1'; 
   
   final Dio _dio = Dio(BaseOptions(
     baseUrl: baseUrl,

@@ -33,7 +33,9 @@ class Settings(BaseSettings):
         # Determine if overwrite needed for Render (postgres:// or postgresql:// -> postgresql+psycopg://)
         if self.DATABASE_URL:
              if self.DATABASE_URL.startswith("postgres://"):
-                self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
+                self.DATABASE_URL = self.DATABASE_URL.replace("postgres://", "postgresql+pg8000://", 1)
+             elif self.DATABASE_URL.startswith("postgresql://"):
+                self.DATABASE_URL = self.DATABASE_URL.replace("postgresql://", "postgresql+pg8000://", 1)
         
         return self
 

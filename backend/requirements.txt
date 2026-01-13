@@ -1,7 +1,7 @@
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
 sqlalchemy>=2.0.35
-psycopg2-binary
+pg8000>=1.30.0
 alembic>=1.13.3
 pydantic-settings>=2.5.2
 python-dotenv>=1.0.1
@@ -11,3 +11,4 @@ replicate>=0.32.1
 reportlab>=4.2.2
 
 # Force Cache Rebuild Wed Jan 14 00:09:06 CET 2026
+# Driver Switch Wed Jan 14 00:17:36 CET 2026

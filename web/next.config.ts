@@ -9,6 +9,16 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/mobile',
+        destination: '/mobile/index.html',
+      },
+      // Handle client-side routing inside the mobile app if needed
+      // (Though hash routing is default for Flutter Web, so this might be redundant but safe)
+    ];
+  },
 };
 
 export default nextConfig;

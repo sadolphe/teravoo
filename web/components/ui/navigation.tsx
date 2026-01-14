@@ -69,7 +69,7 @@ export function Navigation() {
 
                 {/* Mobile Menu */}
                 {isOpen && (
-                    <div className="absolute top-16 left-0 w-full bg-background border-b md:hidden p-4 flex flex-col gap-4 shadow-lg z-50">
+                    <div className="absolute top-16 left-0 w-full bg-background border-b md:hidden p-4 flex flex-col gap-4 shadow-lg z-[100]">
                         {links.map((link) => (
                             <Link
                                 key={link.href}
@@ -83,6 +83,24 @@ export function Navigation() {
                                 {link.label}
                             </Link>
                         ))}
+                        {/* Missing Links */}
+                        <Link
+                            href="/traceability"
+                            onClick={() => setIsOpen(false)}
+                            className={cn(
+                                "text-sm font-medium transition-colors hover:text-foreground/80",
+                                pathname === "/traceability" ? "text-foreground" : "text-foreground/60"
+                            )}
+                        >
+                            Traceability
+                        </Link>
+                        <hr className="border-border" />
+                        <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                            <Button variant="ghost" className="w-full justify-start text-muted-foreground">My Dashboard</Button>
+                        </Link>
+                        <Link href="/requests/create" onClick={() => setIsOpen(false)}>
+                            <Button className="w-full shadow-lg shadow-primary/20">Sourcing Request</Button>
+                        </Link>
                     </div>
                 )}
             </div>

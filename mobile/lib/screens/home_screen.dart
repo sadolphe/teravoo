@@ -143,7 +143,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildStatCard(BuildContext context) {
       // Calculate total potential earnings
-      // double total = _products.fold(0, (sum, item) => sum + (item['price_fob'] as num).toDouble());
+      double total = _products.fold(0, (sum, item) {
+          final double price = (item['price_fob'] as num?)?.toDouble() ?? 0.0;
+          final int quantity = item['quantity_available'] ?? 500;
+          return sum + (price * quantity);
+      });
       
       return Container(
           padding: const EdgeInsets.all(20),
@@ -152,12 +156,12 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(16),
               boxShadow: [BoxShadow(color: Colors.green.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))]
           ),
-          child: const Column(
+          child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                  Text("Total Potential Value", style: TextStyle(color: Colors.white70)),
-                  SizedBox(height: 8),
-                  Text("\$ 14,200", style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)), // Mocked total for MVP
+                  const Text("Total Potential Value", style: TextStyle(color: Colors.white70)),
+                  const SizedBox(height: 8),
+                  Text("\$ ${total.toStringAsFixed(0)}", style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
                   SizedBox(height: 8),
                   Row(
                       children: [

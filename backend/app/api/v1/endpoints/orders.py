@@ -133,3 +133,50 @@ def download_contract(order_id: int, db: Session = Depends(deps.get_db)):
             raise HTTPException(status_code=500, detail=f"Could not regenerate contract: {str(e)}")
 
     return FileResponse(file_path, media_type='application/pdf', filename=filename)
+
+@router.post("/{order_id}/accept", response_model=OrderResponse)
+def accept_order(order_id: int, db: Session = Depends(deps.get_db)):
+    """
+    Producer validates the order. Stock is already reserved (decremented), 
+    so we just update status.
+    """
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    if order.status != "PENDING" and order.status != "SECURED": 
+        # "SECURED" means paid by buyer, "PENDING" might be just reserved. 
+        # For simplicity MVP, we allow transition from PENDING/SECURED to CONFIRMED.
+        pass
+
+    order.status = "CONFIRMED"
+    db.commit()
+    db.refresh(order)
+    return order
+
+@router.post("/{order_id}/reject", response_model=OrderResponse)
+def reject_order(order_id: int, db: Session = Depends(deps.get_db)):
+    """
+    Producer rejects the order.
+    CRITICAL: Refill the stock!
+    """
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    if order.status == "REJECTED":
+        raise HTTPException(status_code=400, detail="Already rejected")
+
+    # 1. Update Status
+    order.status = "REJECTED"
+    
+    # 2. Refund Stock
+    product = db.query(Product).filter(Product.id == order.product_id).first()
+    if product:
+        # We hardcoded 10kg in create_order, so we refund 10kg.
+        # Ideally: order.quantity (if column existed)
+        product.quantity_available += 10 
+    
+    db.commit()
+    db.refresh(order)
+    return order

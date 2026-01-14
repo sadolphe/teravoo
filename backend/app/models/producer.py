@@ -7,7 +7,7 @@ class ProducerProfile(Base):
     __tablename__ = "producer_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
-    id = Column(Integer, primary_key=True, index=True)
+
     # Link to Auth User
     user_id = Column(Integer, nullable=True) # Linked to users.id manually for MVP
     

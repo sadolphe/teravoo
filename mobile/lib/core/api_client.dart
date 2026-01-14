@@ -109,6 +109,24 @@ class ApiClient {
     } catch (e) {
        print("API Error (getMySales): $e");
        return [];
+      // Sales Actions
+  Future<void> acceptOrder(int orderId) async {
+    try {
+      await _dio.post('/orders/$orderId/accept');
+    } catch (e) {
+      print("API Error (acceptOrder): $e");
+      throw e;
     }
+  }
+
+  Future<void> rejectOrder(int orderId) async {
+    try {
+      await _dio.post('/orders/$orderId/reject');
+    } catch (e) {
+      print("API Error (rejectOrder): $e");
+      throw e;
+    }
+  }
+}
   }
 }

@@ -117,8 +117,6 @@ class _SalesScreenState extends State<SalesScreen> {
             if (order['contract_url'] != null)
               TextButton.icon(
                 onPressed: () async {
-                   // In a real app we would use url_launcher
-                   // launchUrl(Uri.parse(order['contract_url']));
                    ScaffoldMessenger.of(context).showSnackBar(
                      const SnackBar(content: Text('Downloading Contract... (Demo)')),
                    );
@@ -126,11 +124,49 @@ class _SalesScreenState extends State<SalesScreen> {
                 icon: const Icon(Icons.picture_as_pdf),
                 label: const Text("Download Contract"),
               )
+            else if (status == 'PENDING' || status == 'SECURED')
+               Row(
+                 mainAxisAlignment: MainAxisAlignment.end,
+                 children: [
+                   OutlinedButton(
+                     onPressed: () => _handleAction(order['id'], 'REJECT'),
+                     style: OutlinedButton.styleFrom(foregroundColor: Colors.red),
+                     child: const Text("Reject"),
+                   ),
+                   const SizedBox(width: 12),
+                   ElevatedButton(
+                     onPressed: () => _handleAction(order['id'], 'ACCEPT'),
+                     style: ElevatedButton.styleFrom(
+                       backgroundColor: Colors.green,
+                       foregroundColor: Colors.white
+                     ),
+                     child: const Text("Accept & Ship"),
+                   ),
+                 ],
+               )
             else
-              const Text("Contract pending...", style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+              Text(
+                status == 'REJECTED' ? "Order Rejected (Stock Restored)" : "Processing...", 
+                style: TextStyle(color: status == 'REJECTED' ? Colors.red : Colors.grey, fontStyle: FontStyle.italic)
+              ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _handleAction(int orderId, String action) async {
+      try {
+        if (action == 'ACCEPT') {
+          await widget.apiClient.acceptOrder(orderId);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Order Accepted! preparing shipment.")));
+        } else {
+          await widget.apiClient.rejectOrder(orderId);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Order Rejected. Stock restored.")));
+        }
+        _fetchSales(); // Refresh UI
+      } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Action failed.")));
+      }
   }
 }

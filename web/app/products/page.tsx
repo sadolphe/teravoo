@@ -69,15 +69,21 @@ export default function MarketplacePage() {
     return (
         <div className="min-h-screen bg-background">
             {/* Hero Section */}
-            <div className="bg-[#1B5E20] text-white py-12">
-                <div className="container mx-auto px-4">
-                    <h1 className="text-4xl font-bold mb-4">Spot Connections</h1>
-                    <p className="text-white/80 max-w-2xl text-lg">
+            <section className="relative bg-primary text-primary-foreground py-24 md:py-32 overflow-hidden">
+                {/* Abstract Background Shapes */}
+                <div className="absolute inset-0 opacity-10 pointer-events-none">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-secondary rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
+                </div>
+
+                <div className="container mx-auto px-6 relative z-10 text-center">
+                    <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6">Spot Connections</h1>
+                    <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto text-center leading-relaxed font-light">
                         Access verified vanilla lots directly from Malagasy producer cooperatives.
                         Traceable, graded, and ready for export.
                     </p>
                 </div>
-            </div>
+            </section>
 
             <div className="container mx-auto px-4 py-8">
                 {/* Filters Bar */}

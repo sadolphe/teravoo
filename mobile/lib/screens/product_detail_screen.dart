@@ -12,6 +12,7 @@ class ProductDetailScreen extends StatelessWidget {
     final double price = (product['price_fob'] as num?)?.toDouble() ?? 0.0;
     final double moisture = (product['moisture_content'] as num?)?.toDouble() ?? 0.0;
     final double vanillin = (product['vanillin_content'] as num?)?.toDouble() ?? 0.0;
+    final int quantity = product['quantity_available'] ?? 500;
     final String status = product['status'] ?? 'PENDING';
     final String imageUrl = product['image_url'] ?? 'https://placehold.co/600x400';
 
@@ -86,6 +87,8 @@ class ProductDetailScreen extends StatelessWidget {
 
             const SizedBox(height: 32),
              _buildDetailRow(Icons.monetization_on, "FOB Price", "\$ ${price.toStringAsFixed(2)} / kg"),
+             const SizedBox(height: 16),
+             _buildDetailRow(Icons.inventory, "Available Stock", "$quantity kg"), 
              const SizedBox(height: 16),
              _buildDetailRow(Icons.location_on, "Region", "SAVA Region, Madagascar"), // Mocked for now if specific field missing
              const SizedBox(height: 16),

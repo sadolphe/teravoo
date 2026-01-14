@@ -101,4 +101,14 @@ class ApiClient {
       }
   }
 
+  // Sales Dashboard
+  Future<List<dynamic>> getMySales() async {
+    try {
+      final response = await _dio.get('/producers/me/sales');
+      return response.data;
+    } catch (e) {
+       print("API Error (getMySales): $e");
+       return [];
+    }
+  }
 }

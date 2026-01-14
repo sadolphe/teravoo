@@ -1,65 +1,35 @@
-from typing import List, Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from app.api import deps
 from app.models.producer import ProducerProfile
-from app.schemas.producer import ProducerResponse, ProducerCreate
+from app.models.product import Product
+from app.models.order import Order
+from app.schemas.order import OrderResponse
 
 router = APIRouter()
 
-@router.get("/", response_model=List[ProducerResponse])
-def read_producers(
-    db: Session = Depends(deps.get_db),
-    skip: int = 0,
-    limit: int = 100,
-) -> Any:
+@router.get("/me/sales")
+def get_my_sales(db: Session = Depends(deps.get_db)):
     """
-    Retrieve producers (facilitators/cooperatives).
+    Get sales for the authenticated producer.
+    For MVP: We'll fetch orders linked to products owned by the *first* producer found
+    (since we don't have real user auth linking yet, or we assume single user demo).
     """
-    producers = db.query(ProducerProfile).offset(skip).limit(limit).all()
-    return producers
-
-@router.get("/{producer_id}", response_model=ProducerResponse)
-def read_producer(
-    producer_id: int,
-    db: Session = Depends(deps.get_db),
-) -> Any:
-    """
-    Get generic producer profile by ID.
-    """
-    producer = db.query(ProducerProfile).filter(ProducerProfile.id == producer_id).first()
-    if not producer:
-        raise HTTPException(status_code=404, detail="Producer not found")
-    return producer
-
-@router.post("/", response_model=ProducerResponse)
-def create_producer(
-    *,
-    db: Session = Depends(deps.get_db),
-    producer_in: ProducerCreate,
-) -> Any:
-    """
-    Create new producer profile (On-the-fly onboarding).
-    """
-    # Check if producer with same name exists in same village to avoid dups
-    # MVP: Loose check
-    existing = db.query(ProducerProfile).filter(
-        ProducerProfile.name == producer_in.name,
-        ProducerProfile.location_district == producer_in.location_district
-    ).first()
+    # 1. Find the Producer Profile (Mocking 'Me')
+    # In real app: producer = db.query(ProducerProfile).filter(ProducerProfile.user_id == current_user.id).first()
+    producer = db.query(ProducerProfile).first()
     
-    if existing:
-        return existing # Idempotency for MVP
-        
-    producer = ProducerProfile(
-        name=producer_in.name,
-        location_region=producer_in.location_region,
-        location_district=producer_in.location_district,
-        bio=producer_in.bio,
-        badges=producer_in.badges
-    )
-    db.add(producer)
-    db.commit()
-    db.refresh(producer)
-    return producer
+    if not producer:
+        return []
+
+    # 2. Get Products owned by this Producer
+    products = db.query(Product).filter(Product.producer_id == producer.id).all()
+    product_ids = [p.id for p in products]
+    
+    if not product_ids:
+        return []
+
+    # 3. Get Orders for these products
+    orders = db.query(Order).filter(Order.product_id.in_(product_ids)).order_by(Order.id.desc()).all()
+    
+    return orders

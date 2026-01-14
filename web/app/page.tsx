@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -360,7 +361,9 @@ export default function Home() {
                           <div className="p-4 bg-muted/30 rounded-lg text-sm font-mono text-xs text-muted-foreground break-all">
                             Escrow_Tx: 0x71C...9A23 • Status: LOCKED
                           </div>
-                          <Button size="lg" className="w-full" onClick={() => setIsOrderCreated(false)}>Close & Track Order</Button>
+                          <DialogClose asChild>
+                            <Button size="lg" className="w-full" onClick={() => setIsOrderCreated(false)}>Close & Track Order</Button>
+                          </DialogClose>
                         </div>
                       </>
                     )}

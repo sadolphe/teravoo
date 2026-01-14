@@ -44,18 +44,24 @@ export default function ProducersListPage() {
     return (
         <div className="min-h-screen bg-background font-sans">
             {/* Header Section */}
-            <div className="bg-[#1B5E20] text-white py-20">
-                <div className="container mx-auto px-6 text-center">
-                    <Badge className="mb-4 bg-white/10 text-white hover:bg-white/20 border-none uppercase tracking-widest text-xs">
+            <section className="relative bg-primary text-primary-foreground py-24 md:py-32 overflow-hidden">
+                {/* Abstract Background Shapes */}
+                <div className="absolute inset-0 opacity-10 pointer-events-none">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-secondary rounded-full blur-3xl translate-x-1/2 -translate-y-1/2"></div>
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-secondary rounded-full blur-3xl -translate-x-1/2 translate-y-1/2"></div>
+                </div>
+
+                <div className="container mx-auto px-6 relative z-10 text-center">
+                    <Badge variant="secondary" className="mb-6 px-4 py-1 text-sm font-medium uppercase tracking-widest bg-secondary/20 text-secondary-foreground border-none">
                         Trusted Partners
                     </Badge>
-                    <h1 className="text-4xl md:text-5xl font-serif font-bold mb-6">Meet the Guardians of Quality</h1>
-                    <p className="text-white/80 max-w-2xl mx-auto text-lg leading-relaxed">
+                    <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6">Meet the Guardians of Quality</h1>
+                    <p className="text-lg md:text-xl opacity-90 max-w-2xl mx-auto leading-relaxed font-light">
                         We work directly with audited cooperatives and facilitators in Madagascar.
                         Every partner is vetted for fair labor practices and sustainable farming.
                     </p>
                 </div>
-            </div>
+            </section>
 
             <div className="container mx-auto max-w-7xl px-6 py-16">
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

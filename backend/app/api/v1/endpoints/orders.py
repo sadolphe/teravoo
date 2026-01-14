@@ -12,8 +12,15 @@ router = APIRouter()
 def create_order(order_in: OrderCreate, db: Session = Depends(deps.get_db)):
     # Verify product exists
     product = db.query(Product).filter(Product.id == order_in.product_id).first()
-    product_name = product.name if product else "Unknown Product"
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
 
+    # Check Stock
+    if product.quantity_available < 10: # Assuming 10kg is min order or just check > 0
+        raise HTTPException(status_code=400, detail="Product Sold Out")
+
+    product_name = product.name 
+    
     # Create Order
     db_order = Order(
         product_id=order_in.product_id,
@@ -22,6 +29,10 @@ def create_order(order_in: OrderCreate, db: Session = Depends(deps.get_db)):
         status="PENDING",
         buyer_name=order_in.buyer_name
     )
+    
+    # Decrement Stock (Simplified transactional logic)
+    product.quantity_available -= 10 # Hardcoded 10kg per order for MVP
+    
     db.add(db_order)
     db.commit()
     db.refresh(db_order)

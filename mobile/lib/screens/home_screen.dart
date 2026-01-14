@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'camera_screen.dart';
 import '../core/api_client.dart';
 import 'product_detail_screen.dart';
+import 'sales_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -54,6 +55,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: Colors.white,
                 child: Text("T", style: TextStyle(fontSize: 24.0, color: Color(0xFF1B5E20))),
               ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.monetization_on, color: Colors.green),
+              title: const Text('Sales Dashboard'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => SalesScreen(apiClient: _apiClient)
+                ));
+              },
             ),
             ListTile(
               leading: const Icon(Icons.dashboard),

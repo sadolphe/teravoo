@@ -19,6 +19,7 @@ class Product(Base):
     harvest_date = Column(String, nullable=True) # e.g. "July 2025" - String for simplicity MVP
     moisture_content = Column(Float, nullable=True) # e.g. 35.0 (%)
     vanillin_content = Column(Float, nullable=True) # e.g. 1.8 (%)
+    quantity_available = Column(Integer, default=500) # Stock tracking
 
     # Sourcing Link
     producer_id = Column(Integer, ForeignKey("producer_profiles.id"), nullable=True)

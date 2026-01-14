@@ -7,8 +7,9 @@ class ProducerProfile(Base):
     __tablename__ = "producer_profiles"
 
     id = Column(Integer, primary_key=True, index=True)
-    # The user_id linking to authentication (if we had it), for now just a unique ID
-    # In a real app: user_id = Column(Integer, ForeignKey("users.id"), unique=True)
+    id = Column(Integer, primary_key=True, index=True)
+    # Link to Auth User
+    user_id = Column(Integer, nullable=True) # Linked to users.id manually for MVP
     
     name = Column(String, index=True) # "Sava Gold Collectors"
     location_region = Column(String) # "Sava, Madagascar"

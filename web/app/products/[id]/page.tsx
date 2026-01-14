@@ -152,12 +152,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                     variant="outline"
                                     className="flex-1 border-primary/20 text-primary font-semibold h-14"
                                     onClick={() => {
-                                        const token = localStorage.getItem("buyer_token");
-                                        if (!token) {
-                                            setShowSignupDialog(true);
-                                        } else {
-                                            alert("Sample Requested! We will contact you shortly.");
-                                        }
+                                        // Demo Mode: Bypass Checks
+                                        alert("Sample Requested! We will contact you shortly.");
                                     }}
                                 >
                                     Request Sample
@@ -167,18 +163,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                     size="lg"
                                     className="flex-1 text-lg h-14 shadow-lg shadow-primary/20"
                                     onClick={() => {
-                                        const token = localStorage.getItem("buyer_token");
-                                        const kyb = localStorage.getItem("kyb_status");
+                                        // Demo Mode: Bypass Checks
+                                        // const token = localStorage.getItem("buyer_token");
+                                        // const kyb = localStorage.getItem("kyb_status");
 
-                                        if (!token) {
-                                            setShowSignupDialog(true);
-                                            return;
-                                        }
-
-                                        if (kyb !== "VALIDATED") {
-                                            alert("Security Check Required: To make a binding offer, we need to validate your company (KYB/Compliance).\n\nPlease contact compliance@teravoo.com to fast-track your approval.");
-                                            return;
-                                        }
+                                        // if (!token) { setShowSignupDialog(true); return; }
+                                        // if (kyb !== "VALIDATED") { ... }
 
                                         const dialogTrigger = document.getElementById("offer-dialog-trigger");
                                         if (dialogTrigger) dialogTrigger.click();

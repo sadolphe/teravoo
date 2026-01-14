@@ -8,6 +8,38 @@ from app.schemas.order import OrderResponse
 
 router = APIRouter()
 
+@router.get("/")
+def list_producers(db: Session = Depends(deps.get_db)):
+    """
+    List all producers (Public for now).
+    """
+    return db.query(ProducerProfile).all()
+
+@router.post("/")
+def create_producer(
+    data: dict, # Simplified for MVP
+    db: Session = Depends(deps.get_db)
+):
+    """
+    Onboard a new producer from Mobile.
+    """
+    # Check if exists
+    existing = db.query(ProducerProfile).filter(ProducerProfile.name == data['name']).first()
+    if existing:
+        return existing
+        
+    new_producer = ProducerProfile(
+        name=data['name'],
+        location_region=data.get('location_region'),
+        location_district=data.get('location_district'),
+        bio=data.get('bio'),
+        badges=data.get('badges', [])
+    )
+    db.add(new_producer)
+    db.commit()
+    db.refresh(new_producer)
+    return new_producer
+
 @router.get("/me/sales")
 def get_my_sales(db: Session = Depends(deps.get_db)):
     """

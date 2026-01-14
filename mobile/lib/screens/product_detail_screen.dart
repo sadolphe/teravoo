@@ -93,6 +93,22 @@ class ProductDetailScreen extends StatelessWidget {
              _buildDetailRow(Icons.location_on, "Region", "SAVA Region, Madagascar"), // Mocked for now if specific field missing
              const SizedBox(height: 16),
              _buildDetailRow(Icons.calendar_today, "Harvest Date", "Oct 15, 2025"), // Mocked
+ 
+             if (status == "SECURED" || status == "CONFIRMED") ...[
+                const SizedBox(height: 32),
+                 Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.green[200]!)),
+                    child: Column(
+                        children: [
+                            const Text("This batch has been sold/secured!", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            const Text("Check Sales Dashboard for order details and logistics.", textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        ],
+                    ),
+                 )
+             ],
 
             const SizedBox(height: 48),
             SizedBox(

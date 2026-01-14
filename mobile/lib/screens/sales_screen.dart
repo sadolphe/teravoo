@@ -334,7 +334,26 @@ class _DecisionSheet extends StatelessWidget {
                         Text("Order ${order['status']}", style: TextStyle(fontWeight: FontWeight.bold, color: order['status'] == 'CONFIRMED' ? Colors.green : Colors.red, fontSize: 16)),
                     ],
                 ),
-             )
+             ),
+             
+             // LOGISTICS TRACKER (Mocked for MVP)
+             if (order['status'] == 'CONFIRMED') ...[
+                const SizedBox(height: 24),
+                const Text("Logistics Status", style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(border: Border.all(color: Colors.grey[200]!), borderRadius: BorderRadius.circular(12)),
+                    child: Column(
+                        children: [
+                            _buildTrackerStep("FOB Validated", true, true),
+                            _buildTrackerStep("Container Loaded", false, true),
+                            _buildTrackerStep("In Transit", false, false),
+                            _buildTrackerStep("Delivered to Buyer", false, false),
+                        ],
+                    ),
+                )
+             ]
           ],
           const SizedBox(height: 32),
         ],
@@ -356,6 +375,23 @@ class _DecisionSheet extends StatelessWidget {
         )
       ],
     );
+  }
+
+  Widget _buildTrackerStep(String label, bool isCompleted, bool isNext) {
+      return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+              children: [
+                  Icon(isCompleted ? Icons.check_circle : (isNext ? Icons.radio_button_checked : Icons.radio_button_unchecked), 
+                       color: isCompleted ? Colors.green : (isNext ? Colors.orange : Colors.grey), size: 20),
+                  const SizedBox(width: 12),
+                  Text(label, style: TextStyle(
+                      color: isCompleted || isNext ? Colors.black : Colors.grey,
+                      fontWeight: isNext ? FontWeight.bold : FontWeight.normal
+                  ))
+              ],
+          ),
+      );
   }
 }
 

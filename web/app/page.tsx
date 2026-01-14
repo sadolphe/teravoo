@@ -118,7 +118,9 @@ export default function Home() {
             No middlemen. AI-verified quality. Secured payments.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="text-lg h-14 px-8 bg-secondary text-primary hover:bg-white transition-all transform hover:scale-105" onClick={() => document.getElementById('marketplace')?.scrollIntoView({ behavior: 'smooth' })}>View Marketplace</Button>
+            <Link href="/products">
+              <Button size="lg" className="text-lg h-14 px-8 bg-secondary text-primary hover:bg-white transition-all transform hover:scale-105">View Marketplace</Button>
+            </Link>
             <Button size="lg" className="text-lg h-14 px-8 bg-transparent border border-white/20 text-white hover:bg-white/10 transition-all" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>How it Works</Button>
           </div>
         </div>

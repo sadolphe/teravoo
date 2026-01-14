@@ -13,6 +13,7 @@ export function Navigation() {
 
     const links = [
         { href: "/", label: "Home" },
+        { href: "/products", label: "Marketplace" },
         { href: "/producers", label: "Our Producers" },
     ];
 

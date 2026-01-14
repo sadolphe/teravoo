@@ -50,6 +50,11 @@ def init_db(db: Session) -> None:
     # ensure tables exist
     Base.metadata.create_all(bind=engine)
     
+    # Check if DB is already seeded (e.g. by seed_remote.sh)
+    if db.query(ProducerProfile).count() > 0:
+        logger.info("Database already seeded with producers. Skipping initial_data.")
+        return
+
     for producer_in in producers_data:
         existing = db.query(ProducerProfile).filter(ProducerProfile.name == producer_in["name"]).first()
         if not existing:

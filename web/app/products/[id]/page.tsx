@@ -28,9 +28,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const resolvedParams = use(params);
     const [product, setProduct] = useState<Product | null>(null);
     const [offerPrice, setOfferPrice] = useState<number>(0);
+    const [offerQuantity, setOfferQuantity] = useState<number>(10);
     const [isOrderCreated, setIsOrderCreated] = useState(false);
     const [contractUrl, setContractUrl] = useState<string | null>(null);
     const [showSignupDialog, setShowSignupDialog] = useState(false);
+    const [showSampleSuccess, setShowSampleSuccess] = useState(false);
     const [traceEvents, setTraceEvents] = useState<TraceabilityEvent[]>([]);
 
     useEffect(() => {
@@ -40,7 +42,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             const p = products.find(p => p.id === Number(resolvedParams.id));
             if (p) {
                 setProduct(p);
-                setOfferPrice(p.price_fob * 10);
+                // Default to full batch or standard 10kg? User asked "take full batch?".
+                // Let's default to full available if < 50kg, else 10kg sample?
+                // For simplicity/demo: Default to full available.
+                const defaultQty = p.quantity_available ?? 250;
+                setOfferQuantity(defaultQty);
+                setOfferPrice(p.price_fob * defaultQty);
 
                 // Fetch Traceability
                 getProductTraceability(p.id).then(setTraceEvents);
@@ -51,7 +58,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const handleConfirmOffer = async () => {
         if (!product) return;
         try {
-            const order = await createOrder(product.id, offerPrice);
+            const order = await createOrder(product.id, offerPrice, offerQuantity);
 
             // Generate Contract
             await generateContract(order.id);
@@ -154,8 +161,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                     variant="outline"
                                     className="flex-1 border-primary/20 text-primary font-semibold h-14"
                                     onClick={() => {
-                                        // Demo Mode: Bypass Checks
-                                        alert("Sample Requested! We will contact you shortly.");
+                                        // Better UX than alert
+                                        setShowSampleSuccess(true);
                                     }}
                                 >
                                     Request Sample
@@ -165,13 +172,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                     size="lg"
                                     className="flex-1 text-lg h-14 shadow-lg shadow-primary/20"
                                     onClick={() => {
-                                        // Demo Mode: Bypass Checks
-                                        // const token = localStorage.getItem("buyer_token");
-                                        // const kyb = localStorage.getItem("kyb_status");
-
-                                        // if (!token) { setShowSignupDialog(true); return; }
-                                        // if (kyb !== "VALIDATED") { ... }
-
                                         const dialogTrigger = document.getElementById("offer-dialog-trigger");
                                         if (dialogTrigger) dialogTrigger.click();
                                     }}
@@ -179,6 +179,21 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                     Make an Offer
                                 </Button>
                             </div>
+
+                            {/* Sample Success Dialog */}
+                            <Dialog open={showSampleSuccess} onOpenChange={setShowSampleSuccess}>
+                                <DialogContent className="sm:max-w-[400px]">
+                                    <DialogHeader>
+                                        <DialogTitle>Sample Requested! 📦</DialogTitle>
+                                        <DialogDescription>
+                                            Your request has been sent to the producer. You will receive tracking info shortly.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter>
+                                        <Button onClick={() => setShowSampleSuccess(false)}>Close</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
 
                             <Dialog>
                                 <DialogTrigger asChild>
@@ -196,8 +211,26 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
                                             <div className="py-6 space-y-4">
                                                 <div className="grid gap-2">
+                                                    <Label htmlFor="quantity" className="text-sm font-medium">
+                                                        Quantity (kg) - Available: {product.quantity_available ?? 250}kg
+                                                    </Label>
+                                                    <Input
+                                                        id="quantity"
+                                                        type="number"
+                                                        value={offerQuantity}
+                                                        onChange={(e) => {
+                                                            const q = Number(e.target.value);
+                                                            setOfferQuantity(q);
+                                                            // Auto-update price estimate based on FOB
+                                                            setOfferPrice(q * product.price_fob);
+                                                        }}
+                                                        className="text-lg font-semibold h-12"
+                                                    />
+                                                </div>
+
+                                                <div className="grid gap-2">
                                                     <Label htmlFor="price" className="text-sm font-medium">
-                                                        Your Offer Price (Total USD for 10kg)
+                                                        Your Offer Price (Total USD)
                                                     </Label>
                                                     <Input
                                                         id="price"
@@ -206,7 +239,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                                         onChange={(e) => setOfferPrice(Number(e.target.value))}
                                                         className="text-lg font-semibold h-12"
                                                     />
-                                                    <p className="text-xs text-muted-foreground">Based on $ {product.price_fob}/kg</p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Target: ${(offerQuantity * product.price_fob).toLocaleString()} (based on ${product.price_fob}/kg)
+                                                    </p>
                                                 </div>
                                             </div>
                                             <DialogFooter>

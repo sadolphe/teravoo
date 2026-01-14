@@ -11,6 +11,7 @@ export type Product = {
   harvest_date?: string;
   moisture_content?: number;
   vanillin_content?: number;
+  quantity_available?: number;
 };
 
 export type Order = {
@@ -73,13 +74,13 @@ export async function getOrders(): Promise<Order[]> {
   }
 }
 
-export async function createOrder(productId: number, amount: number): Promise<Order> {
+export async function createOrder(productId: number, amount: number, quantity: number): Promise<Order> {
   const res = await fetch(`${API_URL}/orders/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       product_id: productId,
-      quantity_kg: 10, // Hardcoded for MVP
+      quantity_kg: quantity,
       offer_price_total: amount,
       buyer_name: "Sarah Import Corp" // Hardcoded for MVP flow
     }),

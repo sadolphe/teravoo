@@ -16,6 +16,7 @@ class _CameraScreenState extends State<CameraScreen> {
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _moistureController = TextEditingController();
   final TextEditingController _vanillinController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   // Producer State
   List<dynamic> _producers = [];
@@ -68,6 +69,7 @@ class _CameraScreenState extends State<CameraScreen> {
          _priceController.text = "250.0";
          _moistureController.text = "35.0";
          _vanillinController.text = "1.8";
+         _nameController.text = "Vanille Scan #${DateTime.now().minute}";
      });
   }
 
@@ -116,7 +118,7 @@ class _CameraScreenState extends State<CameraScreen> {
           final double finalVanillin = double.tryParse(_vanillinController.text) ?? 1.8;
 
           await _apiClient.uploadProduct(
-              name: "Vanille Scan #${DateTime.now().minute}", 
+              name: _nameController.text, 
               price: finalPrice, 
               imagePath: "mock_image.jpg",
               moisture: finalMoisture,
@@ -226,11 +228,33 @@ class _CameraScreenState extends State<CameraScreen> {
                                         ),
                                     ),
 
+                                    // NEW: Batch Name Field
+                                    Container(
+                                      margin: const EdgeInsets.only(bottom: 16),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: TextField(
+                                        controller: _nameController,
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                        decoration: const InputDecoration(
+                                          border: InputBorder.none,
+                                          labelText: "Batch Name",
+                                          labelStyle: TextStyle(color: Colors.white54),
+                                          icon: Icon(Icons.edit, color: Colors.white54),
+                                        ),
+                                      ),
+                                    ),
+
                                     Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                         decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(20)),
                                         child: Text("Grade ${_analysisResult!['grade']}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
                                     ),
+// ... (rest)
+
                                     const SizedBox(height: 16),
                                     
                                     Row(

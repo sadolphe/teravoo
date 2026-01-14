@@ -173,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildProductCard(Map<String, dynamic> product) {
       final String title = product['name'] ?? 'Unknown Product';
-      final String subtitle = "${product['price_fob']} \$/kg";
+      final String subtitle = "${product['quantity_available'] ?? 500} kg • ${product['price_fob']} \$/kg";
       final String status = product['status'] ?? 'PENDING';
       final int id = product['id'];
 

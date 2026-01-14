@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
 import 'dart:convert';
-import 'package:url_launcher/url_launcher.dart'; // Ensure user adds url_launcher to pubspec if not present, otherwise standard HTTP link
+import 'dart:convert';
 
 class SalesScreen extends StatefulWidget {
   final ApiClient apiClient;
@@ -152,6 +152,12 @@ class _SalesScreenState extends State<SalesScreen> with SingleTickerProviderStat
                         Text(order['product_name'] ?? 'Unknown Product', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                         const SizedBox(height: 4),
                         Text("from ${order['buyer_name'] ?? 'Anonymous'}", style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(4)),
+                          child: const Text("10 kg", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        )
                       ],
                     ),
                   ),
@@ -198,6 +204,7 @@ class _SalesScreenState extends State<SalesScreen> with SingleTickerProviderStat
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: Colors.grey[200]!)),
       child: ListTile(
+        onTap: () => _showDecisionSheet(order),
         leading: Icon(
           status == 'CONFIRMED' ? Icons.check_circle : (status == 'REJECTED' ? Icons.cancel : Icons.info),
           color: statusColor
@@ -245,6 +252,8 @@ class _DecisionSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isActionable = ['PENDING', 'SECURED'].contains(order['status']);
+
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -259,53 +268,74 @@ class _DecisionSheet extends StatelessWidget {
             child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
           ),
           const SizedBox(height: 24),
-          const Text("Review Order Request", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Text(isActionable ? "Review Order Request" : "Order Details", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 24),
           
           _buildInfoRow(Icons.person, "Buyer", order['buyer_name'] ?? "Unknown"),
           const SizedBox(height: 16),
           _buildInfoRow(Icons.inventory_2, "Items", order['product_name']),
           const SizedBox(height: 16),
+          _buildInfoRow(Icons.scale, "Volume", "10 kg"), // Hardcoded for MVP
+          const SizedBox(height: 16),
           _buildInfoRow(Icons.monetization_on, "Total Value", "\$${order['amount']}"),
           
           const SizedBox(height: 32),
-          const Text("Risk Analysis", style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(8)),
-            child: const Row(children: [Icon(Icons.shield, color: Colors.green, size: 20), SizedBox(width: 8), Text("Trusted Buyer (Score 9.8/10)", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))]),
-          ),
           
-          const SizedBox(height: 32),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => onAction('REJECT'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red)
-                  ),
-                  child: const Text("Decline Deal"),
-                ),
+          if (isActionable) ...[
+              const Text("Risk Analysis", style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(8)),
+                child: const Row(children: [Icon(Icons.shield, color: Colors.green, size: 20), SizedBox(width: 8), Text("Trusted Buyer (Score 9.8/10)", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold))]),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => onAction('ACCEPT'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: const Color(0xFF1B5E20),
-                    foregroundColor: Colors.white,
-                    elevation: 0
+              const SizedBox(height: 32),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => onAction('REJECT'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red)
+                      ),
+                      child: const Text("Decline Deal"),
+                    ),
                   ),
-                  child: const Text("Confirm & Ship"),
-                ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => onAction('ACCEPT'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: const Color(0xFF1B5E20),
+                        foregroundColor: Colors.white,
+                        elevation: 0
+                      ),
+                      child: const Text("Confirm & Ship"),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+          ] else ...[
+             Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                    color: order['status'] == 'CONFIRMED' ? Colors.green[50] : Colors.red[50],
+                    borderRadius: BorderRadius.circular(12)
+                ),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                        Icon(order['status'] == 'CONFIRMED' ? Icons.check_circle : Icons.cancel, color: order['status'] == 'CONFIRMED' ? Colors.green : Colors.red),
+                        const SizedBox(width: 8),
+                        Text("Order ${order['status']}", style: TextStyle(fontWeight: FontWeight.bold, color: order['status'] == 'CONFIRMED' ? Colors.green : Colors.red, fontSize: 16)),
+                    ],
+                ),
+             )
+          ],
           const SizedBox(height: 32),
         ],
       ),

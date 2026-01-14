@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: '/mobile/:path*',
+        source: '/mobile/:path*((?!.*\\..*$).*)',
         destination: '/mobile/index.html',
       },
     ];

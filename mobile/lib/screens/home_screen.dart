@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'camera_screen.dart';
 import '../core/api_client.dart';
+import 'product_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -169,6 +170,11 @@ class _HomeScreenState extends State<HomeScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: ListTile(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => ProductDetailScreen(product: product)
+                ));
+              },
               leading: Container(
                   width: 50, height: 50,
                   decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),

@@ -37,8 +37,9 @@ def verify_otp(request: VerifyOTPRequest, db: Session = Depends(deps.get_db)):
     Mock: Accepts '1234' only.
     Creates user if not exists (Onboarding 'on-the-fly').
     """
-    if request.otp != "1234":
-        raise HTTPException(status_code=400, detail="Invalid OTP")
+    # MVP BYPASS: Allow any code for demo
+    # if request.otp != "1234":
+    #    raise HTTPException(status_code=400, detail="Invalid OTP")
 
     user = db.query(User).filter(User.phone_number == request.phone_number).first()
     is_new = False

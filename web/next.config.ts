@@ -9,6 +9,27 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/mobile',
+        destination: '/mobile/',
+        permanent: true,
+      }
+    ];
+  },
+  async rewrites() {
+    return {
+      beforeFiles: [],
+      afterFiles: [],
+      fallback: [
+        {
+          source: '/mobile/:path*',
+          destination: '/mobile/index.html',
+        },
+      ],
+    };
+  },
 
 };
 

@@ -16,8 +16,8 @@ def create_order(order_in: OrderCreate, db: Session = Depends(deps.get_db)):
         raise HTTPException(status_code=404, detail="Product not found")
 
     # Check Stock
-    if product.quantity_available < 10: # Assuming 10kg is min order or just check > 0
-        raise HTTPException(status_code=400, detail="Product Sold Out")
+    if product.quantity_available < order_in.quantity_kg:
+        raise HTTPException(status_code=400, detail="Product Sold Out or Insufficient Stock")
 
     product_name = product.name 
     
@@ -31,7 +31,7 @@ def create_order(order_in: OrderCreate, db: Session = Depends(deps.get_db)):
     )
     
     # Decrement Stock (Simplified transactional logic)
-    product.quantity_available -= 10 # Hardcoded 10kg per order for MVP
+    product.quantity_available -= int(order_in.quantity_kg)
     
     db.add(db_order)
     db.commit()

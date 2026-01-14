@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { getProducts, createOrder, Product, getProductTraceability } from "@/lib/api";
+import { getProducts, createOrder, Product, getProductTraceability, generateContract } from "@/lib/api";
 import { Timeline, TraceabilityEvent } from "@/components/traceability/Timeline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,12 +52,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         if (!product) return;
         try {
             const order = await createOrder(product.id, offerPrice);
-            // Simulate Contract Gen instantly for MVP demo
-            const contractPath = `/api/v1/orders/${order.id}/contract`;
-            await fetch(`http://localhost:8000${contractPath}`, { method: 'POST' });
+
+            // Generate Contract
+            await generateContract(order.id);
 
             setIsOrderCreated(true);
-            setContractUrl(`http://localhost:8000/api/v1/orders/${order.id}/contract`);
+            // Construct contract URL properly based on environment
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+            setContractUrl(`${apiUrl}/orders/${order.id}/download_contract`);
         } catch (e) {
             alert("Error creating order");
         }

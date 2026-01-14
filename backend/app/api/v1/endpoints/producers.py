@@ -15,21 +15,9 @@ def get_my_sales(db: Session = Depends(deps.get_db)):
     For MVP: We'll fetch orders linked to products owned by the *first* producer found
     (since we don't have real user auth linking yet, or we assume single user demo).
     """
-    # 1. Find the Producer Profile (Mocking 'Me')
-    # In real app: producer = db.query(ProducerProfile).filter(ProducerProfile.user_id == current_user.id).first()
-    producer = db.query(ProducerProfile).first()
-    
-    if not producer:
-        return []
-
-    # 2. Get Products owned by this Producer
-    products = db.query(Product).filter(Product.producer_id == producer.id).all()
-    product_ids = [p.id for p in products]
-    
-    if not product_ids:
-        return []
-
-    # 3. Get Orders for these products
-    orders = db.query(Order).filter(Order.product_id.in_(product_ids)).order_by(Order.id.desc()).all()
+    # DEMO GOD MODE: Return ALL orders in the system for everyone.
+    # This ensures that no matter which producer you selected when creating the product,
+    # the order appears in the dashboard.
+    orders = db.query(Order).order_by(Order.id.desc()).all()
     
     return orders

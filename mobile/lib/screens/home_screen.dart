@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'camera_screen.dart';
 import '../core/api_client.dart';
+import '../core/theme.dart';
 import 'product_detail_screen.dart';
 import 'sales_screen.dart';
+import 'pricing_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,30 +37,36 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: AppTheme.backgroundCream,
       appBar: AppBar(
-        title: const Text('My Harvests'),
-        backgroundColor: Colors.white,
+        title: Text('My Harvests', style: AppTheme.textTheme.headlineMedium),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-            IconButton(icon: const Icon(Icons.refresh), onPressed: _fetchProducts)
+            IconButton(icon: const Icon(Icons.refresh, color: AppTheme.primaryGreen), onPressed: _fetchProducts)
         ],
       ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            const UserAccountsDrawerHeader(
-              decoration: BoxDecoration(color: Color(0xFF1B5E20)),
-              accountName: Text("Coopérative Taroka"),
-              accountEmail: Text("+261 34 05 123 45"),
-              currentAccountPicture: CircleAvatar(
+            UserAccountsDrawerHeader(
+              decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                      colors: [AppTheme.primaryGreen, AppTheme.darkGreen],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight
+                  )
+              ),
+              accountName: Text("Coopérative Taroka", style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold)),
+              accountEmail: const Text("+261 34 05 123 45"),
+              currentAccountPicture: const CircleAvatar(
                 backgroundColor: Colors.white,
-                child: Text("T", style: TextStyle(fontSize: 24.0, color: Color(0xFF1B5E20))),
+                child: Text("T", style: TextStyle(fontSize: 24.0, color: AppTheme.primaryGreen)),
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.monetization_on, color: Colors.green),
+              leading: const Icon(Icons.monetization_on, color: AppTheme.primaryGreen),
               title: const Text('Sales Dashboard'),
               onTap: () {
                 Navigator.pop(context);
@@ -67,35 +76,29 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.price_change, color: Colors.blue),
+              title: const Text('Gestion des Tarifs'),
+              subtitle: const Text('Paliers dégressifs', style: TextStyle(fontSize: 11)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => PricingScreen(apiClient: _apiClient)
+                ));
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.dashboard),
               title: const Text('My Harvests'),
+              selected: true,
+              selectedTileColor: AppTheme.primaryGreen.withOpacity(0.1),
               onTap: () {
                 Navigator.pop(context); // Close drawer
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.qr_code_scanner),
-              title: const Text('Scan New Batch'),
-              onTap: () async {
-                Navigator.pop(context); // Close drawer
-                final result = await Navigator.push(
-                    context, 
-                    MaterialPageRoute(builder: (_) => const CameraScreen())
-                );
-                if (result == true) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Produce Published Successfully! 🚀"))
-                      );
-                    }
-                    _fetchProducts();
-                }
-              },
-            ),
             const Divider(),
             ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              leading: const Icon(Icons.logout, color: AppTheme.errorRed),
+              title: const Text('Logout', style: TextStyle(color: AppTheme.errorRed)),
               onTap: () {
                  Navigator.pop(context);
                  Navigator.pushReplacementNamed(context, '/login');
@@ -113,30 +116,46 @@ class _HomeScreenState extends State<HomeScreen> {
             );
             if (result == true) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Produce Published Successfully! 🚀"))
+                    const SnackBar(content: Text("Produce Published Successfully! 🚀"), backgroundColor: AppTheme.successGreen)
                 );
                 _fetchProducts(); // Refresh list after upload
             }
         },
-        backgroundColor: const Color(0xFF1B5E20),
-        foregroundColor: Colors.white,
+        backgroundColor: AppTheme.accentGold,
+        foregroundColor: Colors.black,
         icon: const Icon(Icons.camera_alt),
-        label: const Text("Scan Vanilla"),
+        label: const Text("SCAN VANILLA", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.0)),
       ),
       body: _isLoading 
-        ? const Center(child: CircularProgressIndicator())
-        : ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-                _buildStatCard(context),
-                const SizedBox(height: 24),
-                const Text("Recent Batches", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                if (_products.isEmpty)
-                    const Center(child: Text("No harvests yet. Start scanning!", style: TextStyle(color: Colors.grey))),
-                
-                ..._products.map((p) => _buildProductCard(p)).toList().reversed, // Show newest first (naive reverse)
-            ],
+        ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryGreen))
+        : RefreshIndicator(
+            onRefresh: _fetchProducts,
+            color: AppTheme.primaryGreen,
+            child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                    _buildStatCard(context),
+                    const SizedBox(height: 32),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                            Text("Recent Batches", style: AppTheme.textTheme.headlineMedium),
+                            Text("${_products.length} Items", style: AppTheme.textTheme.bodyMedium),
+                        ],
+                    ),
+                    const SizedBox(height: 16),
+                    if (_products.isEmpty)
+                        const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(48.0),
+                              child: Text("No harvests yet.\nStart scanning your vanilla!", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                            )
+                        ),
+                    
+                    ..._products.map((p) => _buildProductCard(p)).toList().reversed, // Show newest first (naive reverse)
+                    const SizedBox(height: 80), // Fab space
+                ],
+            ),
         ),
     );
   }
@@ -150,26 +169,36 @@ class _HomeScreenState extends State<HomeScreen> {
       });
       
       return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFF1B5E20), Color(0xFF2E7D32)]),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: Colors.green.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))]
+              gradient: const LinearGradient(
+                  colors: [AppTheme.primaryGreen, Color(0xFF2E7D32)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                  BoxShadow(color: AppTheme.primaryGreen.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))
+              ]
           ),
           child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                  const Text("Total Potential Value", style: TextStyle(color: Colors.white70)),
-                  const SizedBox(height: 8),
-                  Text("\$ ${total.toStringAsFixed(0)}", style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 8),
                   Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                          Icon(Icons.trending_up, color: Colors.lightGreenAccent, size: 16),
-                          SizedBox(width: 4),
-                          Text("+ One new batch added", style: TextStyle(color: Colors.lightGreenAccent))
+                          const Text("Total Potential Value", style: TextStyle(color: Colors.white70)),
+                          Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
+                              child: const Icon(Icons.trending_up, color: Colors.white, size: 20),
+                          )
                       ],
-                  )
+                  ),
+                  const SizedBox(height: 16),
+                  Text("\$ ${total.toStringAsFixed(0)}", style: GoogleFonts.playfairDisplay(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  const Text("Estimated based on FOB prices", style: TextStyle(color: Colors.white54, fontSize: 12))
               ],
           ),
       );
@@ -177,68 +206,78 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildProductCard(Map<String, dynamic> product) {
       final String title = product['name'] ?? 'Unknown Product';
-      final String subtitle = "${product['quantity_available'] ?? 500} kg • ${product['price_fob']} \$/kg";
+      final String grade = product['grade'] ?? 'A';
+      final int quantity = product['quantity_available'] ?? 500;
+      final double price = (product['price_fob'] as num?)?.toDouble() ?? 0.0;
       final String status = product['status'] ?? 'PENDING';
       final int id = product['id'];
 
-      return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: ListTile(
+      final bool isSecured = status == "SECURED" || status == "CONFIRMED";
+
+      return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                  BoxShadow(color: Colors.grey.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+              ],
+              border: Border.all(color: Colors.grey.withOpacity(0.1))
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(
                     builder: (_) => ProductDetailScreen(product: product)
                 ));
               },
-              leading: Container(
-                  width: 50, height: 50,
-                  decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
-                  child: const Icon(Icons.inventory_2, color: Colors.grey),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                    children: [
+                        // Icon / Image Placeholder
+                        Container(
+                            width: 60, height: 60,
+                            decoration: BoxDecoration(color: AppTheme.backgroundCream, borderRadius: BorderRadius.circular(16)),
+                            child: Center(
+                                child: Text(grade, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryGreen.withOpacity(0.5)))
+                            ),
+                        ),
+                        const SizedBox(width: 16),
+                        // Info
+                        Expanded(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                    Text(title, style: AppTheme.textTheme.headlineMedium?.copyWith(fontSize: 16)),
+                                    const SizedBox(height: 4),
+                                    Text("$quantity kg  •  \$ $price / kg", style: TextStyle(color: AppTheme.textGrey)),
+                                ],
+                            ),
+                        ),
+                        // Status Badge
+                        Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                                color: isSecured ? AppTheme.accentGold.withOpacity(0.2) : const Color(0xFFE8F5E9),
+                                borderRadius: BorderRadius.circular(12)
+                            ),
+                            child: Text(
+                                status, 
+                                style: TextStyle(
+                                    color: isSecured ? const Color(0xFF8D6E63) : AppTheme.primaryGreen,
+                                    fontSize: 10, 
+                                    fontWeight: FontWeight.bold
+                                )
+                            ),
+                        ),
+                    ],
+                ),
               ),
-              title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(subtitle),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                          color: status == "SECURED" ? Colors.orange[100] : Colors.green[100],
-                          borderRadius: BorderRadius.circular(8)
-                      ),
-                      child: Text(status, style: TextStyle(
-                          color: status == "SECURED" ? Colors.orange[800] : Colors.green[800],
-                          fontSize: 12, fontWeight: FontWeight.bold
-                      )),
-                  ),
-                  if (status != "SECURED") 
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      onPressed: () => _confirmDelete(id, title), 
-                    )
-                ],
-              ),
+            ),
           ),
       );
-  }
-
-  Future<void> _confirmDelete(int id, String productName) {
-    return showDialog(context: context, builder: (ctx) => AlertDialog(
-       title: const Text("Withdraw Batch?"),
-       content: Text("Are you sure you want to remove $productName from marketplace?"),
-       actions: [
-         TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
-         TextButton(onPressed: () async { 
-           Navigator.pop(ctx); // Close dialog
-           try {
-             await _apiClient.deleteProduct(id);
-             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("$productName withdrawn.")));
-             _fetchProducts(); // Refresh list
-           } catch (e) {
-             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to withdraw produt.")));
-           }
-         }, child: const Text("Withdraw", style: TextStyle(color: Colors.red))),
-       ]
-    ));
   }
 }

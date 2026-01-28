@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import '../core/api_client.dart';
+import '../core/theme.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -17,6 +18,8 @@ class _CameraScreenState extends State<CameraScreen> {
   final TextEditingController _moistureController = TextEditingController();
   final TextEditingController _vanillinController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
+  String _selectedGrade = "A";
+  final List<String> _gradeOptions = ["A", "B", "C", "D", "SPLITS", "CUTS", "VRAC"];
 
   // Producer State
   List<dynamic> _producers = [];
@@ -100,7 +103,7 @@ class _CameraScreenState extends State<CameraScreen> {
                       );
                       if (newProducer != null) {
                           _loadProducers(); // Refresh list
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Producer Created!")));
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Producer Created!"), backgroundColor: AppTheme.successGreen));
                       }
                   }, 
                   child: const Text("Create")
@@ -123,20 +126,21 @@ class _CameraScreenState extends State<CameraScreen> {
               imagePath: "mock_image.jpg",
               moisture: finalMoisture,
               vanillin: finalVanillin,
-              producerId: _selectedProducerId
+              producerId: _selectedProducerId,
+              grade: _selectedGrade
           );
           if (mounted) {
               Navigator.pop(context, true); 
           }
       } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: AppTheme.errorRed));
       }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF000000),
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Colors.white),
@@ -219,7 +223,7 @@ class _CameraScreenState extends State<CameraScreen> {
                                                             ),
                                                         ),
                                                         IconButton(
-                                                            icon: const Icon(Icons.add_circle, color: Color(0xFFD4AF37)),
+                                                            icon: const Icon(Icons.add_circle, color: AppTheme.accentGold),
                                                             onPressed: _createNewProducer,
                                                         )
                                                     ],
@@ -250,10 +254,24 @@ class _CameraScreenState extends State<CameraScreen> {
 
                                     Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                        decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(20)),
-                                        child: Text("Grade ${_analysisResult!['grade']}", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
+                                        decoration: BoxDecoration(color: AppTheme.primaryGreen, borderRadius: BorderRadius.circular(20)),
+                                        child: DropdownButton<String>(
+                                            value: _selectedGrade,
+                                            dropdownColor: AppTheme.darkGreen,
+                                            underline: const SizedBox(),
+                                            icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
+                                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                            items: _gradeOptions.map((String value) {
+                                                return DropdownMenuItem<String>(
+                                                value: value,
+                                                child: Text("Grade $value"),
+                                                );
+                                            }).toList(),
+                                            onChanged: (val) {
+                                                if (val != null) setState(() => _selectedGrade = val);
+                                            },
+                                        )
                                     ),
-// ... (rest)
 
                                     const SizedBox(height: 16),
                                     
@@ -298,12 +316,12 @@ class _CameraScreenState extends State<CameraScreen> {
                                     const Divider(color: Colors.white24),
                                     Row(
                                       children: [
-                                        const Text("\$ ", style: TextStyle(color: Color(0xFFD4AF37), fontSize: 24, fontWeight: FontWeight.bold)),
+                                        const Text("\$ ", style: TextStyle(color: AppTheme.accentGold, fontSize: 24, fontWeight: FontWeight.bold)),
                                         SizedBox(
                                           width: 100,
                                           child: TextField(
                                             controller: _priceController,
-                                            style: const TextStyle(color: Color(0xFFD4AF37), fontSize: 24, fontWeight: FontWeight.bold),
+                                            style: const TextStyle(color: AppTheme.accentGold, fontSize: 24, fontWeight: FontWeight.bold),
                                             keyboardType: TextInputType.number,
                                             decoration: const InputDecoration(
                                               border: InputBorder.none,
@@ -311,7 +329,7 @@ class _CameraScreenState extends State<CameraScreen> {
                                             ),
                                           ),
                                         ),
-                                        const Text("/ kg", style: TextStyle(color: Color(0xFFD4AF37), fontSize: 24, fontWeight: FontWeight.bold)),
+                                        const Text("/ kg", style: TextStyle(color: AppTheme.accentGold, fontSize: 24, fontWeight: FontWeight.bold)),
                                       ],
                                     ),
                                     const Text("Recommended Price based on Quality", style: TextStyle(color: Colors.white54, fontSize: 12)),
@@ -339,7 +357,7 @@ class _CameraScreenState extends State<CameraScreen> {
                 child: ElevatedButton(
                     onPressed: _publishProduct,
                     style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFD4AF37),
+                        backgroundColor: AppTheme.accentGold,
                         foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(vertical: 16)
                     ),

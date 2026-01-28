@@ -19,6 +19,7 @@ class TokenResponse(BaseModel):
     is_new_user: bool
     role: str
     kyb_status: str | None = None
+    producer_id: int | None = None
 
 @router.post("/login")
 def login_request_otp(request: PhoneLoginRequest):
@@ -36,6 +37,7 @@ def verify_otp(request: VerifyOTPRequest, db: Session = Depends(deps.get_db)):
     MVP: Verify OTP.
     Mock: Accepts '1234' only.
     Creates user if not exists (Onboarding 'on-the-fly').
+    ensures a ProducerProfile exists for FACILITATOR/PRODUCER roles.
     """
     # MVP BYPASS: Allow any code for demo
     # if request.otp != "1234":
@@ -57,13 +59,44 @@ def verify_otp(request: VerifyOTPRequest, db: Session = Depends(deps.get_db)):
         db.refresh(user)
         is_new = True
 
+    # Check for existing ProducerProfile linked to this user (or by phone generic logic for MVP)
+    producer_id = None
+    if user.role in ["FACILITATOR", "PRODUCER", "PRODUCER_REPRESENTATIVE"]:
+        try:
+            from app.models.producer import ProducerProfile
+            
+            # 1. Try to find by user_id
+            producer = db.query(ProducerProfile).filter(ProducerProfile.user_id == user.id).first()
+            
+            # 2. If not found, try to find "Orphan" profile by matching name (if we had name) or just create one
+            if not producer:
+                 # DEMO LOGIC: If no profile, create a default one "Producer {Phone}"
+                 producer = ProducerProfile(
+                     user_id=user.id,
+                     name=f"Producer {user.phone_number[-4:]}", # e.g. "Producer 5678"
+                     location_region="Sava",
+                     location_district="Sambava",
+                     bio="New producer via mobile app"
+                 )
+                 db.add(producer)
+                 db.commit()
+                 db.refresh(producer)
+            
+            producer_id = producer.id
+        except Exception as e:
+            print(f"ERROR in verify_otp producer logic: {e}")
+            # Non-blocking error for login? Or should we fail?
+            # Let's ignore it for now but log it so test script sees "producer_id": null
+            pass
+
     # TODO: Generate real JWT
     return {
         "access_token": f"fake-jwt-token-for-{user.id}", 
         "token_type": "bearer",
         "is_new_user": is_new,
         "role": user.role,
-        "kyb_status": user.kyb_status
+        "kyb_status": user.kyb_status,
+        "producer_id": producer_id
     }
 
 class BuyerSignupRequest(BaseModel):

@@ -31,6 +31,8 @@ class ProducerProfile(Base):
     
     # Relationships
     offers = relationship("SourcingOffer", back_populates="producer")
+    products = relationship("Product", back_populates="producer")
+    price_templates = relationship("PriceTierTemplate", back_populates="producer", cascade="all, delete-orphan")
 
 class TraceabilityEvent(Base):
     __tablename__ = "traceability_events"

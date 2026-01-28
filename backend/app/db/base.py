@@ -7,3 +7,4 @@ from app.models.product import Product
 from app.models.order import Order
 from app.models.producer import ProducerProfile, TraceabilityEvent
 from app.models.user import User
+from app.models.pricing import PriceTierTemplate, TemplateTier, PriceTier, PriceTierHistory

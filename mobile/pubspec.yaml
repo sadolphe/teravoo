@@ -18,7 +18,7 @@ dependencies:
   shared_preferences: ^2.2.2
   
   # UI/UX
-  google_fonts: ^6.1.0
+  google_fonts: ^8.0.0
   flutter_animate: ^4.5.0
   
   # Camera & Files

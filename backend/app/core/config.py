@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "TeraVoo"
     
     # CORS Origins (No wildcard if allow_credentials=True)
-    backend_cors_origins_str: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000" 
+    backend_cors_origins_str: str = "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000,http://localhost:5001" 
 
     @property
     def BACKEND_CORS_ORIGINS(self) -> List[str]:

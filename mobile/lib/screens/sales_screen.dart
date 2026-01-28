@@ -6,7 +6,7 @@ import 'dart:convert';
 class SalesScreen extends StatefulWidget {
   final ApiClient apiClient;
 
-  const SalesScreen({Key? key, required this.apiClient}) : super(key: key);
+  const SalesScreen({super.key, required this.apiClient});
 
   @override
   _SalesScreenState createState() => _SalesScreenState();

@@ -12,6 +12,74 @@ export type Product = {
   moisture_content?: number;
   vanillin_content?: number;
   quantity_available?: number;
+  // Pricing fields
+  moq_kg?: number;
+  pricing_mode?: 'SINGLE' | 'TIERED' | 'TEMPLATE';
+  template_id?: number;
+};
+
+// --- Pricing Types ---
+export type PriceTier = {
+  id?: number;
+  min_quantity_kg: number;
+  max_quantity_kg: number | null;
+  price_per_kg: number;
+  position: number;
+  discount_percent?: number;
+};
+
+export type PriceTierTemplate = {
+  id: number;
+  producer_id: number;
+  name: string;
+  description?: string;
+  is_default: boolean;
+  tiers: TemplateTier[];
+  products_count: number;
+};
+
+export type TemplateTier = {
+  id: number;
+  min_quantity_kg: number;
+  max_quantity_kg: number | null;
+  discount_percent: number;
+  position: number;
+};
+
+export type ProductPricingInfo = {
+  product_id: number;
+  pricing_mode: string;
+  base_price_fob: number;
+  moq_kg: number;
+  template_id?: number;
+  tiers: PriceTier[];
+};
+
+export type CalculatedPrice = {
+  product_id: number;
+  quantity_kg: number;
+  pricing_mode: string;
+  tier_applied?: {
+    min_quantity_kg: number;
+    max_quantity_kg: number | null;
+    position: number;
+  };
+  price_per_kg: number;
+  total: number;
+  savings_vs_base?: {
+    percent: number;
+    amount: number;
+  };
+  next_tier?: {
+    at_quantity_kg: number;
+    price_per_kg: number;
+    extra_savings_total: number;
+  };
+  price_trend?: {
+    direction: 'up' | 'down' | 'stable';
+    percent: number;
+    since?: string;
+  };
 };
 
 export type Order = {
@@ -163,4 +231,78 @@ export async function getProductTraceability(productId: number) {
     console.error(e);
     return [];
   }
+}
+
+// --- Pricing Endpoints ---
+
+export async function getProductPriceTiers(productId: number): Promise<ProductPricingInfo | null> {
+  try {
+    const res = await fetch(`${API_URL}/pricing/products/${productId}/price-tiers`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return res.json();
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
+export async function calculatePrice(productId: number, quantityKg: number): Promise<CalculatedPrice | null> {
+  try {
+    const res = await fetch(`${API_URL}/pricing/products/${productId}/calculate-price?quantity_kg=${quantityKg}`, {
+      cache: 'no-store'
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+}
+
+export async function setProductPriceTiers(productId: number, tiers: Omit<PriceTier, 'id' | 'position' | 'discount_percent'>[]): Promise<PriceTier[]> {
+  const res = await fetch(`${API_URL}/pricing/products/${productId}/price-tiers`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tiers }),
+  });
+  if (!res.ok) throw new Error('Failed to set price tiers');
+  return res.json();
+}
+
+export async function updateProductPricingMode(productId: number, mode: string, templateId?: number) {
+  const res = await fetch(`${API_URL}/pricing/products/${productId}/pricing-mode`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode, template_id: templateId }),
+  });
+  if (!res.ok) throw new Error('Failed to update pricing mode');
+  return res.json();
+}
+
+// --- Producer Template Endpoints ---
+
+export async function getProducerTemplates(producerId: number): Promise<PriceTierTemplate[]> {
+  try {
+    const res = await fetch(`${API_URL}/pricing/producers/${producerId}/price-templates`, { cache: 'no-store' });
+    if (!res.ok) return [];
+    return res.json();
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
+export async function createProducerTemplate(producerId: number, template: {
+  name: string;
+  description?: string;
+  is_default?: boolean;
+  tiers: { min_quantity_kg: number; max_quantity_kg?: number; discount_percent: number }[];
+}): Promise<PriceTierTemplate> {
+  const res = await fetch(`${API_URL}/pricing/producers/${producerId}/price-templates`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(template),
+  });
+  if (!res.ok) throw new Error('Failed to create template');
+  return res.json();
 }

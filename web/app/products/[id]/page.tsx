@@ -1,8 +1,19 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
-import { getProducts, createOrder, Product, getProductTraceability, generateContract } from "@/lib/api";
+import { useEffect, useState, use, useCallback } from "react";
+import {
+    getProducts,
+    createOrder,
+    Product,
+    getProductTraceability,
+    generateContract,
+    getProductPriceTiers,
+    ProductPricingInfo,
+    CalculatedPrice,
+    PriceTier
+} from "@/lib/api";
 import { Timeline, TraceabilityEvent } from "@/components/traceability/Timeline";
+import { PriceTierGrid } from "@/components/pricing/PriceTierGrid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -27,8 +38,10 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     // In Next.js 15+ params is a promise
     const resolvedParams = use(params);
     const [product, setProduct] = useState<Product | null>(null);
+    const [pricingInfo, setPricingInfo] = useState<ProductPricingInfo | null>(null);
     const [offerPrice, setOfferPrice] = useState<number>(0);
     const [offerQuantity, setOfferQuantity] = useState<number>(10);
+    const [currentPricePerKg, setCurrentPricePerKg] = useState<number>(0);
     const [isOrderCreated, setIsOrderCreated] = useState(false);
     const [contractUrl, setContractUrl] = useState<string | null>(null);
     const [showSignupDialog, setShowSignupDialog] = useState(false);
@@ -42,18 +55,36 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             const p = products.find(p => p.id === Number(resolvedParams.id));
             if (p) {
                 setProduct(p);
-                // Default to full batch or standard 10kg? User asked "take full batch?".
-                // Let's default to full available if < 50kg, else 10kg sample?
-                // For simplicity/demo: Default to full available.
-                const defaultQty = p.quantity_available ?? 250;
+                // Default to MOQ or 10kg minimum
+                const defaultQty = p.moq_kg || 10;
                 setOfferQuantity(defaultQty);
                 setOfferPrice(p.price_fob * defaultQty);
+                setCurrentPricePerKg(p.price_fob);
 
                 // Fetch Traceability
                 getProductTraceability(p.id).then(setTraceEvents);
+
+                // Fetch Pricing Tiers
+                getProductPriceTiers(p.id).then((info) => {
+                    if (info) {
+                        setPricingInfo(info);
+                    }
+                });
             }
         });
     }, [resolvedParams.id]);
+
+    // Handle quantity/price changes from PriceTierGrid
+    const handleQuantityChange = useCallback((quantity: number, calculatedPrice: CalculatedPrice | null) => {
+        setOfferQuantity(quantity);
+        if (calculatedPrice) {
+            setOfferPrice(calculatedPrice.total);
+            setCurrentPricePerKg(calculatedPrice.price_per_kg);
+        } else if (product) {
+            setOfferPrice(quantity * product.price_fob);
+            setCurrentPricePerKg(product.price_fob);
+        }
+    }, [product]);
 
     const handleConfirmOffer = async () => {
         if (!product) return;
@@ -131,15 +162,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             </div>
                         </div>
 
+                        {/* Quality Specs Card */}
                         <div className="p-6 bg-muted/30 rounded-xl border border-border">
-                            <div className="flex items-baseline justify-between mb-2">
-                                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">FOB Price</span>
-                                <div className="flex items-baseline gap-1">
-                                    <span className="text-4xl font-bold text-primary">${product.price_fob}</span>
-                                    <span className="text-sm text-muted-foreground">/ kg</span>
-                                </div>
-                            </div>
-                            <Separator className="my-4" />
+                            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">Quality Specifications</h3>
                             <div className="space-y-3">
                                 <div className="flex justify-between text-sm">
                                     <span>Moisture Content</span>
@@ -151,9 +176,40 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span>Available Quantity</span>
-                                    <span className="font-bold">250 kg</span>
+                                    <span className="font-bold">{product.quantity_available ?? 250} kg</span>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Pricing Tiers Card */}
+                        <div className="p-6 bg-muted/30 rounded-xl border border-border">
+                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <span>Tarifs Dégressifs</span>
+                                {pricingInfo?.pricing_mode === 'TIERED' && (
+                                    <Badge variant="secondary" className="text-xs">Volume Discount</Badge>
+                                )}
+                            </h3>
+
+                            {pricingInfo && pricingInfo.tiers && pricingInfo.tiers.length > 0 ? (
+                                <PriceTierGrid
+                                    productId={product.id}
+                                    basePriceFob={product.price_fob}
+                                    tiers={pricingInfo.tiers}
+                                    moqKg={pricingInfo.moq_kg || 1}
+                                    quantityAvailable={product.quantity_available ?? 500}
+                                    onQuantityChange={handleQuantityChange}
+                                />
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-4xl font-bold text-primary">${product.price_fob}</span>
+                                        <span className="text-sm text-muted-foreground">/ kg (FOB)</span>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground">
+                                        Prix unique quelle que soit la quantité commandée.
+                                    </p>
+                                </div>
+                            )}
 
                             <div className="flex gap-4 mt-6">
                                 <Button
@@ -210,27 +266,31 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                             </DialogHeader>
 
                                             <div className="py-6 space-y-4">
-                                                <div className="grid gap-2">
-                                                    <Label htmlFor="quantity" className="text-sm font-medium">
-                                                        Quantity (kg) - Available: {product.quantity_available ?? 250}kg
-                                                    </Label>
-                                                    <Input
-                                                        id="quantity"
-                                                        type="number"
-                                                        value={offerQuantity}
-                                                        onChange={(e) => {
-                                                            const q = Number(e.target.value);
-                                                            setOfferQuantity(q);
-                                                            // Auto-update price estimate based on FOB
-                                                            setOfferPrice(q * product.price_fob);
-                                                        }}
-                                                        className="text-lg font-semibold h-12"
-                                                    />
+                                                {/* Order Summary */}
+                                                <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+                                                    <div className="flex justify-between text-sm">
+                                                        <span>Quantité</span>
+                                                        <span className="font-bold">{offerQuantity} kg</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-sm">
+                                                        <span>Prix appliqué</span>
+                                                        <span className="font-bold">${currentPricePerKg.toFixed(2)}/kg</span>
+                                                    </div>
+                                                    <Separator />
+                                                    <div className="flex justify-between items-baseline">
+                                                        <span className="font-medium">Total</span>
+                                                        <span className="text-2xl font-bold text-primary">${offerPrice.toLocaleString()}</span>
+                                                    </div>
+                                                    {currentPricePerKg < product.price_fob && (
+                                                        <div className="text-xs text-green-600 text-right">
+                                                            Vous économisez ${((product.price_fob - currentPricePerKg) * offerQuantity).toFixed(2)} grâce aux paliers dégressifs
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 <div className="grid gap-2">
                                                     <Label htmlFor="price" className="text-sm font-medium">
-                                                        Your Offer Price (Total USD)
+                                                        Votre Offre (Total USD)
                                                     </Label>
                                                     <Input
                                                         id="price"
@@ -240,7 +300,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                                         className="text-lg font-semibold h-12"
                                                     />
                                                     <p className="text-xs text-muted-foreground">
-                                                        Target: ${(offerQuantity * product.price_fob).toLocaleString()} (based on ${product.price_fob}/kg)
+                                                        Prix suggéré: ${(offerQuantity * currentPricePerKg).toLocaleString()} (basé sur ${currentPricePerKg}/kg)
                                                     </p>
                                                 </div>
                                             </div>

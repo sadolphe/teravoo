@@ -22,3 +22,5 @@ This project uses **Flutter**.
 - Photo Capture & Upload
 - Product List (Offline cached)
 - Basic Chat
+- **Hot Restart**: Press `R` in terminal to apply changes.
+

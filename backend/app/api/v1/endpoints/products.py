@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from app.schemas.product import ProductCreate, ProductResponse
+from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate
 from app.services.replicate_service import replicate_service
 from app.api import deps
 from app.models.product import Product
@@ -32,6 +32,7 @@ def upload_product(product_in: ProductCreate, db: Session = Depends(deps.get_db)
 
     db_product = Product(
         name=product_in.name,
+        grade=product_in.grade,
         price_fob=product_in.price_fob,
         image_url_raw=product_in.image_url,
         image_url_ai=enhanced_url,
@@ -88,5 +89,31 @@ def delete_product(product_id: int, db: Session = Depends(deps.get_db)):
     # For MVP we hard delete to keep list clean
     db.delete(product)
     db.commit()
+    
+    return product
+@router.put("/{product_id}", response_model=ProductResponse)
+def update_product(product_id: int, product_in: ProductUpdate, db: Session = Depends(deps.get_db)):
+    """
+    Update product details (Name, Grade, Price, Specs).
+    """
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    if product_in.name is not None:
+        product.name = product_in.name
+    if product_in.grade is not None:
+        product.grade = product_in.grade
+    if product_in.price_fob is not None:
+        product.price_fob = product_in.price_fob
+    if product_in.moisture_content is not None:
+        product.moisture_content = product_in.moisture_content
+    if product_in.vanillin_content is not None:
+        product.vanillin_content = product_in.vanillin_content
+    if product_in.description is not None:
+        product.description = product_in.description
+        
+    db.commit()
+    db.refresh(product)
     
     return product

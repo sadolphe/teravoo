@@ -40,10 +40,7 @@ def ensure_schema():
         from app.models.order import Order
         from app.models.user import User
         from app.models.pricing import PriceTier, PriceTierTemplate, PriceTierHistory
-        from app.models.sourcing import (
-            ConnexionRequest, RfqRound, RfqOffer, 
-            LogisticService, ShippingQuote, PartnershipInquiry
-        )
+        from app.models.sourcing import SourcingRequest, SourcingOffer
         
         print(f"  → Found {len(Base.metadata.tables)} table definitions in models")
         

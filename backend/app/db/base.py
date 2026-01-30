@@ -7,7 +7,5 @@ from app.models.order import Order
 from app.models.producer import ProducerProfile, TraceabilityEvent
 from app.models.user import User
 from app.models.pricing import PriceTierTemplate, TemplateTier, PriceTier, PriceTierHistory
-from app.models.sourcing import (
-    ConnexionRequest, RfqRound, RfqOffer,
-    LogisticService, ShippingQuote, PartnershipInquiry
-)
+from app.models.sourcing import SourcingRequest, SourcingOffer
+

@@ -34,26 +34,45 @@ def ensure_schema():
     # 1. Create all tables from SQLAlchemy models
     print("\n[1/3] Creating tables from models...")
     try:
-        # Import all models to ensure they're registered
+        # Import all models to ensure they're registered with Base.metadata
         from app.models.product import Product
         from app.models.producer import ProducerProfile, TraceabilityEvent
         from app.models.order import Order
+        from app.models.user import User
         from app.models.pricing import PriceTier, PriceTierTemplate, PriceTierHistory
         from app.models.sourcing import (
             ConnexionRequest, RfqRound, RfqOffer, 
             LogisticService, ShippingQuote, PartnershipInquiry
         )
         
-        print(f"  → Found {len(Base.metadata.tables)} table definitions")
+        print(f"  → Found {len(Base.metadata.tables)} table definitions in models")
+        
+        # Get list of existing tables
+        inspector = inspect(engine)
+        existing_tables = set(inspector.get_table_names())
+        print(f"  → Found {len(existing_tables)} existing tables in database")
+        
+        # First, try the global create_all
         Base.metadata.create_all(bind=engine, checkfirst=True)
         
-        # Verify orders table specifically
-        if not table_exists(engine, 'orders'):
-            print("  ⚠️  Orders table still missing after create_all, forcing creation...")
+        # Then verify each table individually and force create if missing
+        missing_tables = []
+        for table_name, table_obj in Base.metadata.tables.items():
+            if not table_exists(engine, table_name):
+                missing_tables.append((table_name, table_obj))
+        
+        if missing_tables:
+            print(f"  ⚠️  {len(missing_tables)} table(s) still missing, forcing individual creation...")
             with engine.connect() as conn:
                 from sqlalchemy.schema import CreateTable
-                conn.execute(CreateTable(Order.__table__))
-                conn.commit()
+                for table_name, table_obj in missing_tables:
+                    try:
+                        print(f"    → Creating {table_name}...")
+                        conn.execute(CreateTable(table_obj, if_not_exists=True))
+                        conn.commit()
+                        print(f"    ✓ Created {table_name}")
+                    except Exception as e:
+                        print(f"    ✗ Failed to create {table_name}: {e}")
         
         print("✓ All tables created/verified")
     except Exception as e:

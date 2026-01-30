@@ -26,6 +26,7 @@ def create_order(order_in: OrderCreate, db: Session = Depends(deps.get_db)):
         product_id=order_in.product_id,
         product_name=product_name,
         amount=order_in.offer_price_total,
+        quantity_kg=order_in.quantity_kg,
         status="PENDING",
         buyer_name=order_in.buyer_name
     )
@@ -173,9 +174,9 @@ def reject_order(order_id: int, db: Session = Depends(deps.get_db)):
     # 2. Refund Stock
     product = db.query(Product).filter(Product.id == order.product_id).first()
     if product:
-        # We hardcoded 10kg in create_order, so we refund 10kg.
-        # Ideally: order.quantity (if column existed)
-        product.quantity_available += 10 
+        # Refund the actual quantity that was reserved
+        refund_quantity = int(order.quantity_kg) if order.quantity_kg else 10
+        product.quantity_available += refund_quantity 
     
     db.commit()
     db.refresh(order)

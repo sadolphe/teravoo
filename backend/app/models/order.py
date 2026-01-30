@@ -10,6 +10,7 @@ class Order(Base):
     status = Column(String, default="PENDING")
     contract_url = Column(String, nullable=True)
     buyer_name = Column(String)
+    quantity_kg = Column(Float, default=10.0)  # Track order quantity for stock management
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # We could adding FK to Product, but for MVP strict loose coupling or direct ID is fine.

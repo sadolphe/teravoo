@@ -15,4 +15,5 @@ class OrderResponse(BaseModel):
     amount: float
     status: str # PENDING, CONTRACT_SIGNED, SECURED, SHIPPED
     contract_url: Optional[str] = None
+    quantity_kg: Optional[float] = None
     created_at: datetime

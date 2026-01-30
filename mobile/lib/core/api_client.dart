@@ -1,15 +1,18 @@
 import 'package:dio/dio.dart';
 
 class ApiClient {
-  // Setup: 
-  // For iOS Simulator: http://localhost:8000/api/v1
-  // For Android Emulator: http://10.0.2.2:8000/api/v1
-  // For Real Device (USB): http://<YOUR_IP>:8000/api/v1
-  // PROD (Render):
-  static const String baseUrl = 'https://teravoo-backend.onrender.com/api/v1'; 
+  // ═══════════════════════════════════════════════════════════
+  // API CONFIGURATION
+  // ═══════════════════════════════════════════════════════════
   
-  // LOCAL DEV (uncomment for local development):
-  // static const String baseUrl = 'http://localhost:8000/api/v1';
+  // 🔧 SWITCH: Set to true to use local backend for development
+  static const bool USE_LOCAL_API = false;
+  
+  static const String localUrl = 'http://localhost:8000/api/v1';
+  static const String productionUrl = 'https://teravoo-backend.onrender.com/api/v1';
+  
+  // Automatic selection based on USE_LOCAL_API flag
+  static String get baseUrl => USE_LOCAL_API ? localUrl : productionUrl;
   
   final Dio _dio = Dio(BaseOptions(
     baseUrl: baseUrl,

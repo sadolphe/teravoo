@@ -34,10 +34,32 @@ def ensure_schema():
     # 1. Create all tables from SQLAlchemy models
     print("\n[1/3] Creating tables from models...")
     try:
-        Base.metadata.create_all(bind=engine)
+        # Import all models to ensure they're registered
+        from app.models.product import Product
+        from app.models.producer import ProducerProfile, TraceabilityEvent
+        from app.models.order import Order
+        from app.models.pricing import PriceTier, PriceTierTemplate, PriceTierHistory
+        from app.models.sourcing import (
+            ConnexionRequest, RfqRound, RfqOffer, 
+            LogisticService, ShippingQuote, PartnershipInquiry
+        )
+        
+        print(f"  → Found {len(Base.metadata.tables)} table definitions")
+        Base.metadata.create_all(bind=engine, checkfirst=True)
+        
+        # Verify orders table specifically
+        if not table_exists(engine, 'orders'):
+            print("  ⚠️  Orders table still missing after create_all, forcing creation...")
+            with engine.connect() as conn:
+                from sqlalchemy.schema import CreateTable
+                conn.execute(CreateTable(Order.__table__))
+                conn.commit()
+        
         print("✓ All tables created/verified")
     except Exception as e:
         print(f"✗ Error creating tables: {e}")
+        import traceback
+        traceback.print_exc()
         raise
     
     # 2. Add missing columns (for legacy migrations)

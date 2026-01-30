@@ -108,18 +108,20 @@ def ensure_schema():
             else:
                 print("  ✓ producer_profiles.user_id exists")
         
-        # Check orders.quantity_kg
-        if table_exists(engine, 'orders'):
-            if not column_exists(engine, 'orders', 'quantity_kg'):
-                print("  → Adding quantity_kg to orders table...")
+        # Check orders.quantity_kg (handle both 'order' and 'orders' table names)
+        order_table_name = 'orders' if table_exists(engine, 'orders') else 'order' if table_exists(engine, 'order') else None
+        
+        if order_table_name:
+            if not column_exists(engine, order_table_name, 'quantity_kg'):
+                print(f"  → Adding quantity_kg to {order_table_name} table...")
                 try:
-                    conn.execute(text("ALTER TABLE orders ADD COLUMN quantity_kg FLOAT DEFAULT 10.0;"))
+                    conn.execute(text(f"ALTER TABLE {order_table_name} ADD COLUMN quantity_kg FLOAT DEFAULT 10.0;"))
                     conn.commit()
-                    print("  ✓ Added quantity_kg")
+                    print(f"  ✓ Added quantity_kg to {order_table_name}")
                 except Exception as e:
                     print(f"  ✗ Error: {e}")
             else:
-                print("  ✓ orders.quantity_kg exists")
+                print(f"  ✓ {order_table_name}.quantity_kg exists")
 
     
     # 3. Verify critical tables
@@ -127,7 +129,7 @@ def ensure_schema():
     critical_tables = [
         'product', 
         'producer_profiles', 
-        'orders', 
+        'order',  # Note: Currently 'order' but will be 'orders' after schema recreation
         'price_tiers',
         'price_tier_templates'
     ]

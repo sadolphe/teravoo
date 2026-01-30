@@ -4,6 +4,8 @@ from datetime import datetime
 from app.db.base_class import Base
 
 class Order(Base):
+    __tablename__ = "orders"
+    
     id = Column(Integer, primary_key=True, index=True)
     product_name = Column(String) # Snapshot of product name
     amount = Column(Float)

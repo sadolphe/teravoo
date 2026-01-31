@@ -26,6 +26,7 @@ class ProducerProfile(Base):
     
     # Contact info (Hidden publically)
     contact_email = Column(String, nullable=True)
+    phone = Column(String, nullable=True)  # Phone number for mobile contact
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     

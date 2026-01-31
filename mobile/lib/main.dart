@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'core/theme.dart';
+import 'core/api_client.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/profile_screen.dart';
 
 void main() {
   runApp(const TeraVooApp());
@@ -20,6 +22,7 @@ class TeraVooApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/home': (context) => const HomeScreen(),
+        '/profile': (context) => ProfileScreen(apiClient: ApiClient()),
       },
       debugShowCheckedModeBanner: false,
     );

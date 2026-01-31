@@ -85,6 +85,31 @@ class ApiClient {
       rethrow;
     }
   }
+
+  // ═══════════════════════════════════════════════════════════
+  // PRODUCER PROFILE METHODS (For ProfileScreen)
+  // ═══════════════════════════════════════════════════════════
+
+  Future<Map<String, dynamic>> getProducerProfile(int producerId) async {
+    try {
+      final response = await _dio.get('/producers/$producerId');
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      print("API Error (getProducerProfile): $e");
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProducerProfile(int producerId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.put('/producers/$producerId', data: data);
+      return response.data as Map<String, dynamic>;
+    } catch (e) {
+      print("API Error (updateProducerProfile): $e");
+      rethrow;
+    }
+  }
+
   Future<List<dynamic>> getProducers() async {
     try {
       final response = await _dio.get('/producers/');

@@ -18,11 +18,13 @@ class _HomeScreenState extends State<HomeScreen> {
   final ApiClient _apiClient = ApiClient();
   List<dynamic> _products = [];
   bool _isLoading = true;
+  Map<String, dynamic>? _producerProfile;  // NEW: Producer profile data
 
   @override
   void initState() {
     super.initState();
     _fetchProducts();
+    _loadProducerProfile();  // NEW: Load producer profile
   }
 
   Future<void> _fetchProducts() async {
@@ -32,6 +34,19 @@ class _HomeScreenState extends State<HomeScreen> {
           _products = products;
           _isLoading = false;
       });
+  }
+
+  // NEW: Load producer profile from API
+  Future<void> _loadProducerProfile() async {
+    try {
+      final profile = await _apiClient.getProducerProfile(ApiClient.currentProducerId ?? 1);
+      if (mounted) {
+        setState(() => _producerProfile = profile);
+      }
+    } catch (e) {
+      print("Error loading producer profile: $e");
+      // Use default values on error
+    }
   }
 
   @override
@@ -58,11 +73,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       end: Alignment.bottomRight
                   )
               ),
-              accountName: Text("Coopérative Taroka", style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold)),
-              accountEmail: const Text("+261 34 05 123 45"),
-              currentAccountPicture: const CircleAvatar(
+              // UPDATED: Use real producer data instead of hardcoded "Coopérative Taroka"
+              accountName: Text(
+                _producerProfile?['name'] ?? 'Loading...',
+                style: GoogleFonts.playfairDisplay(fontWeight: FontWeight.bold),
+              ),
+              accountEmail: Text(_producerProfile?['phone'] ?? ''),
+              currentAccountPicture: CircleAvatar(
                 backgroundColor: Colors.white,
-                child: Text("T", style: TextStyle(fontSize: 24.0, color: AppTheme.primaryGreen)),
+                child: Text(
+                  _producerProfile?['name']?.substring(0, 1).toUpperCase() ?? 'P',
+                  style: const TextStyle(fontSize: 24.0, color: AppTheme.primaryGreen),
+                ),
               ),
             ),
             ListTile(
@@ -73,6 +95,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(context, MaterialPageRoute(
                   builder: (_) => SalesScreen(apiClient: _apiClient)
                 ));
+              },
+            ),
+            // NEW: Profile menu item
+            ListTile(
+              leading: const Icon(Icons.person, color: AppTheme.primaryGreen),
+              title: const Text('Mon Profil'),
+              onTap: () async {
+                Navigator.pop(context);
+                final result = await Navigator.pushNamed(context, '/profile');
+                // Reload profile if updated
+                if (result == true) {
+                  _loadProducerProfile();
+                }
               },
             ),
             ListTile(

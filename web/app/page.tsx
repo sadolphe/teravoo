@@ -204,7 +204,7 @@ export default function Home() {
             <Card key={product.id} className="group overflow-hidden border-none shadow-lg hover:shadow-xl transition-all duration-300 bg-card">
               <div className="relative aspect-[4/3] bg-muted overflow-hidden">
                 <img
-                  src={product.image_url_ai}
+                  src={product.image_url_ai || product.image_url_raw || 'https://placehold.co/600x400/e6e6e6/1a1a1a?text=Vanilla+Beans'}
                   alt={product.name}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
@@ -294,7 +294,7 @@ export default function Home() {
                         <div className="py-6 space-y-6">
                           <div className="p-4 bg-muted/50 rounded-lg flex gap-4 items-center">
                             <div className="h-16 w-16 bg-gray-200 rounded-md overflow-hidden shrink-0">
-                              <img src={selectedProduct?.image_url_ai} className="w-full h-full object-cover" />
+                              <img src={selectedProduct?.image_url_ai || selectedProduct?.image_url_raw || 'https://placehold.co/100x100/e6e6e6/1a1a1a?text=Vanilla'} className="w-full h-full object-cover" />
                             </div>
                             <div>
                               <h4 className="font-semibold">{selectedProduct?.name}</h4>

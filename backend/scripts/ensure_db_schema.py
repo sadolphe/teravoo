@@ -108,6 +108,19 @@ def ensure_schema():
             else:
                 print("  ✓ producer_profiles.user_id exists")
         
+        # Check product.grade
+        if table_exists(engine, 'product'):
+            if not column_exists(engine, 'product', 'grade'):
+                print("  → Adding grade to product table...")
+                try:
+                    conn.execute(text("ALTER TABLE product ADD COLUMN grade VARCHAR DEFAULT 'A';"))
+                    conn.commit()
+                    print("  ✓ Added grade")
+                except Exception as e:
+                    print(f"  ✗ Error: {e}")
+            else:
+                print("  ✓ product.grade exists")
+        
         # Check orders.quantity_kg (handle both 'order' and 'orders' table names)
         order_table_name = 'orders' if table_exists(engine, 'orders') else 'order' if table_exists(engine, 'order') else None
         
@@ -143,8 +156,82 @@ def ensure_schema():
         else:
             print(f"  ✗ {table} MISSING!")
     
+    # 4. Seed realistic data if database is empty
+    print("\n[4/4] Seeding realistic data (if needed)...")
+    
+    with engine.connect() as conn:
+        # Check if we already have products
+        result = conn.execute(text("SELECT COUNT(*) FROM product"))
+        product_count = result.scalar()
+        
+        if product_count >= 5:
+            print(f"  ℹ️  Database already has {product_count} products, skipping seed")
+        else:
+            print("  → Seeding marketplace with realistic data...")
+            
+            # Get producer IDs
+            result = conn.execute(text("SELECT id FROM producer_profiles LIMIT 3"))
+            pids = [row[0] for row in result]
+            
+            if not pids:
+                print("  ⚠️  No producers found, skipping product seed")
+            else:
+                # Seed products with varied grades and stock
+                seed_sql = f"""
+                INSERT INTO product (
+                    name, grade, price_fob, quantity_available,
+                    moisture_content, vanillin_content, status,
+                    description, producer_id,
+                    image_url_raw, image_url_ai,
+                    origin, farmer_name, harvest_date
+                ) VALUES 
+                ('Premium Bourbon Grade A', 'A', 285.0, 0, 33.0, 2.1, 'PUBLISHED',
+                 'Premium bourbon vanilla beans. Rich, creamy aroma.', {pids[0]},
+                 'https://images.unsplash.com/photo-1589985270727-8532bb37384f?w=800',
+                 'https://images.unsplash.com/photo-1589985270727-8532bb37384f?w=800',
+                 'SAVA Region, Madagascar', 'Cooperative A', 'July 2024'),
+                
+                ('Organic Madagascar Grade A', 'A', 295.0, 150, 32.5, 2.0, 'PUBLISHED',
+                 'Certified organic. Sweet, intense flavor.', {pids[0]},
+                 'https://images.unsplash.com/photo-1605631653535-b16a71b5a2c9?w=800',
+                 'https://images.unsplash.com/photo-1605631653535-b16a71b5a2c9?w=800',
+                 'SAVA Region, Madagascar', 'Cooperative A', 'July 2024'),
+                
+                ('Standard Grade B', 'B', 180.0, 400, 28.0, 1.6, 'PUBLISHED',
+                 'Perfect for vanilla extract production.', {pids[min(1, len(pids)-1)]},
+                 'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=800',
+                 'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=800',
+                 'Antalaha, Madagascar', 'Cooperative B', 'July 2024'),
+                
+                ('Commercial Grade C', 'C', 120.0, 650, 25.0, 1.2, 'PUBLISHED',
+                 'Budget-friendly option for industrial use.', {pids[min(2, len(pids)-1)]},
+                 'https://images.unsplash.com/photo-1605631653535-b16a71b5a2c9?w=800',
+                 'https://images.unsplash.com/photo-1605631653535-b16a71b5a2c9?w=800',
+                 'North Madagascar', 'Cooperative C', 'July 2024'),
+                
+                ('Premium Splits', 'SPLITS', 90.0, 800, 30.0, 1.8, 'PUBLISHED',
+                 'Split beans from A harvest. Great value.', {pids[0]},
+                 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800',
+                 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800',
+                 'SAVA Region, Madagascar', 'Cooperative A', 'July 2024'),
+                
+                ('Mixed Cuts', 'CUTS', 65.0, 1200, 28.0, 1.4, 'PUBLISHED',
+                 'Perfect for extraction. Maximum value.', {pids[min(1, len(pids)-1)]},
+                 'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=800',
+                 'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=800',
+                 'Antalaha, Madagascar', 'Cooperative B', 'July 2024')
+                """
+                
+                try:
+                    conn.execute(text(seed_sql))
+                    conn.commit()
+                    print("  ✓ Seeded 6 diverse vanilla products")
+                except Exception as e:
+                    print(f"  ✗ Error seeding products: {e}")
+                    conn.rollback()
+    
     print("\n" + "=" * 60)
-    print("DATABASE SCHEMA READY")
+    print("DATABASE SCHEMA READY & SEEDED")
     print("=" * 60 + "\n")
 
 if __name__ == "__main__":

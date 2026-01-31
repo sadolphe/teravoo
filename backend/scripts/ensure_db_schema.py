@@ -120,6 +120,43 @@ def ensure_schema():
                     print(f"  ✗ Error: {e}")
             else:
                 print("  ✓ product.grade exists")
+            
+            # Check product.moq_kg
+            if not column_exists(engine, 'product', 'moq_kg'):
+                print("  → Adding moq_kg to product table...")
+                try:
+                    conn.execute(text("ALTER TABLE product ADD COLUMN moq_kg FLOAT DEFAULT 1.0;"))
+                    conn.commit()
+                    print("  ✓ Added moq_kg")
+                except Exception as e:
+                    print(f"  ✗ Error: {e}")
+            else:
+                print("  ✓ product.moq_kg exists")
+            
+            # Check product.pricing_mode
+            if not column_exists(engine, 'product', 'pricing_mode'):
+                print("  → Adding pricing_mode to product table...")
+                try:
+                    conn.execute(text("ALTER TABLE product ADD COLUMN pricing_mode VARCHAR DEFAULT 'SINGLE';"))
+                    conn.commit()
+                    print("  ✓ Added pricing_mode")
+                except Exception as e:
+                    print(f"  ✗ Error: {e}")
+            else:
+                print("  ✓ product.pricing_mode exists")
+            
+            # Check product.template_id
+            if not column_exists(engine, 'product', 'template_id'):
+                print("  → Adding template_id to product table...")
+                try:
+                    conn.execute(text("ALTER TABLE product ADD COLUMN template_id INTEGER;"))
+                    conn.commit()
+                    print("  ✓ Added template_id")
+                except Exception as e:
+                    print(f"  ✗ Error: {e}")
+            else:
+                print("  ✓ product.template_id exists")
+        
         
         # Check orders.quantity_kg (handle both 'order' and 'orders' table names)
         order_table_name = 'orders' if table_exists(engine, 'orders') else 'order' if table_exists(engine, 'order') else None

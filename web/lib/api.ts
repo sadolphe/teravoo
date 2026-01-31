@@ -161,6 +161,16 @@ export async function generateContract(orderId: number) {
   await fetch(`${API_URL}/orders/${orderId}/contract`, { method: 'POST' });
 }
 
+export async function payToEscrow(orderId: number): Promise<Order> {
+  const res = await fetch(`${API_URL}/orders/${orderId}/pay`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error('Failed to process payment');
+  return res.json();
+}
+
+
 // --- Sourcing Endpoints ---
 
 export async function getRequests(): Promise<SourcingRequest[]> {

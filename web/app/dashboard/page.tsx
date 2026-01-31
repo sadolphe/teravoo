@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getOrders, Order } from "@/lib/api";
+import { getOrders, Order, payToEscrow } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,10 +15,33 @@ import {
 
 export default function Dashboard() {
     const [orders, setOrders] = useState<Order[]>([]);
+    const [payingOrderId, setPayingOrderId] = useState<number | null>(null);
+
+    const loadOrders = () => {
+        getOrders().then(setOrders);
+    };
 
     useEffect(() => {
-        getOrders().then(setOrders);
+        loadOrders();
     }, []);
+
+    const handlePayToEscrow = async (orderId: number) => {
+        if (!confirm(`Confirm payment to escrow for Order #${orderId}?\n\nFunds will be held securely until delivery is confirmed.`)) {
+            return;
+        }
+
+        setPayingOrderId(orderId);
+        try {
+            await payToEscrow(orderId);
+            alert('✅ Payment successful! Funds are now secured in escrow.');
+            loadOrders(); // Refresh orders to show updated status
+        } catch (error) {
+            alert('❌ Payment failed. Please try again.');
+            console.error(error);
+        } finally {
+            setPayingOrderId(null);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background font-sans text-foreground">
@@ -72,13 +95,10 @@ export default function Dashboard() {
                                         ) : order.status === 'CONTRACT_GENERATED' || order.status === 'CONFIRMED' ? (
                                             <Button
                                                 size="sm"
-                                                disabled={!order.contract_url}
-                                                onClick={() => {
-                                                    // TODO: Integrate with Escrow payment API
-                                                    alert(`Processing payment to escrow for Order #${order.id}\n\nThis will secure $${order.amount} in escrow until delivery is confirmed.`);
-                                                }}
+                                                disabled={!order.contract_url || payingOrderId === order.id}
+                                                onClick={() => handlePayToEscrow(order.id)}
                                             >
-                                                Pay to Escrow
+                                                {payingOrderId === order.id ? 'Processing...' : 'Pay to Escrow'}
                                             </Button>
                                         ) : (
                                             <Badge variant="outline" className="text-center justify-center">

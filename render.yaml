@@ -5,7 +5,7 @@ services:
     region: frankfurt
     plan: free
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && python scripts/ensure_db_schema.py && python -m app.initial_data && uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: cd backend && python scripts/auto_migrate.py && python -m app.initial_data && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0

@@ -143,6 +143,12 @@ export async function getOrders(): Promise<Order[]> {
 }
 
 export async function createOrder(productId: number, amount: number, quantity: number): Promise<Order> {
+  // Get buyer name from session storage, or use a generic buyer name
+  // In production, this would come from the authenticated user session
+  const buyerName = typeof window !== 'undefined'
+    ? sessionStorage.getItem('buyer_name') || 'Anonymous Buyer'
+    : 'Web Client';
+
   const res = await fetch(`${API_URL}/orders/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -150,7 +156,7 @@ export async function createOrder(productId: number, amount: number, quantity: n
       product_id: productId,
       quantity_kg: quantity,
       offer_price_total: amount,
-      buyer_name: "Sarah Import Corp" // Hardcoded for MVP flow
+      buyer_name: buyerName  // UPDATED: Use dynamic buyer name instead of hardcoded "Sarah Import Corp"
     }),
   });
   if (!res.ok) throw new Error('Failed to create order');

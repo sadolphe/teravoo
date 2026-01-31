@@ -69,10 +69,21 @@ export default function Dashboard() {
                                             <Badge className="bg-green-100 text-green-800 hover:bg-green-100 text-center justify-center">
                                                 Funds Hosted
                                             </Badge>
-                                        ) : (
-                                            <Button size="sm" disabled={!order.contract_url}>
+                                        ) : order.status === 'CONTRACT_GENERATED' || order.status === 'CONFIRMED' ? (
+                                            <Button
+                                                size="sm"
+                                                disabled={!order.contract_url}
+                                                onClick={() => {
+                                                    // TODO: Integrate with Escrow payment API
+                                                    alert(`Processing payment to escrow for Order #${order.id}\n\nThis will secure $${order.amount} in escrow until delivery is confirmed.`);
+                                                }}
+                                            >
                                                 Pay to Escrow
                                             </Button>
+                                        ) : (
+                                            <Badge variant="outline" className="text-center justify-center">
+                                                Pending Contract
+                                            </Badge>
                                         )}
                                     </div>
                                 </CardContent>

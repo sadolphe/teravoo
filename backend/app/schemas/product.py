@@ -18,7 +18,6 @@ class ProductCreate(BaseModel):
 
     # Pricing configuration (optional at creation)
     moq_kg: Optional[float] = 1.0
-    moq_kg: Optional[float] = 1.0
     pricing_mode: Optional[str] = "SINGLE"
 
 class ProductUpdate(BaseModel):
@@ -35,7 +34,6 @@ class ProductResponse(BaseModel):
     name: str
     price_fob: float
     image_url_raw: str
-    image_url_ai: str
     image_url_ai: str
     status: str
     grade: Optional[str] = "A"

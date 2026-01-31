@@ -73,8 +73,15 @@ def list_products(db: Session = Depends(deps.get_db)):
     """
     MVP: List all products from DB.
     """
-    products = db.query(Product).all()
-    return products
+    try:
+        products = db.query(Product).all()
+        print(f"✅ Successfully fetched {len(products)} products")
+        return products
+    except Exception as e:
+        print(f"❌ Error in list_products: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to fetch products: {str(e)}")
 
 @router.delete("/{product_id}", response_model=ProductResponse)
 def delete_product(product_id: int, db: Session = Depends(deps.get_db)):

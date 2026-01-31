@@ -66,7 +66,7 @@ export default function Home() {
 
     setIsLoading(true);
     try {
-      const order = await createOrder(selectedProduct.id, offerPrice);
+      const order = await createOrder(selectedProduct.id, offerPrice, 10); // 10kg default quantity
       setOrderId(order.id);
 
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
